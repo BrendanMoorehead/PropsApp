@@ -1,11 +1,13 @@
-import { View, Text } from 'react-native'
+import { View, Text, Button } from 'react-native'
 import React from 'react'
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-const SignIn = () => {
+const SignIn = ({ navigation }) => {
   return (
-    <View>
-      <Text>SignIn</Text>
-    </View>
+    <SafeAreaView>
+      <Text>Sign In</Text>
+      
+    </SafeAreaView>
   )
 }
 

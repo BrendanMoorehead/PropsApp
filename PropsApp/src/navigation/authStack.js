@@ -15,6 +15,7 @@ const authStack = () => {
   return (
     <NavigationContainer>
         <Stack.Navigator
+            initialRouteName='Welcome'
             screenOptions={{
                 headerShown: false,
             }}

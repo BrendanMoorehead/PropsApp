@@ -1,11 +1,19 @@
-import { View, Text } from 'react-native'
+import { View, Text, Button } from 'react-native'
 import React from 'react'
-
-const Welcome = () => {
+import { SafeAreaView } from 'react-native-safe-area-context';
+const Welcome = ({ navigation }) => {
   return (
-    <View>
+    <SafeAreaView>
       <Text>Welcome</Text>
-    </View>
+      <Button 
+      title="Sign Up"
+      onPress={() => navigation.navigate('Sign Up')}
+      />
+      <Button 
+      title="Sign In"
+      onPress={() => navigation.navigate('Sign In')}
+      />
+    </SafeAreaView>
   )
 }
 
