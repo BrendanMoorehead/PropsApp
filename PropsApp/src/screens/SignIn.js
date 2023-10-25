@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useEffect, useState } from 'react';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 import { TextInput } from 'react-native-gesture-handler';
+import { useAuth } from '../hooks/useAuth';
 
 const auth = getAuth();
 
@@ -15,12 +16,13 @@ const SignIn = ({ navigation }) => {
     const signIn = async () => {
         setIsLoading(true);
         try{
-            await signInWithEmailAndPassword(auth, email, password);
+            await signInWithEmailAndPassword(auth, email, password);      
         }catch(err){
             console.log(err);
             alert("Unknown Error: " + err);
         }finally{
             setIsLoading(false);
+            console.log(auth.currentUser.getIdToken(true));
         }
     }
 

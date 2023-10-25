@@ -6,7 +6,7 @@ import AuthStack from './authStack';
 
 export default function RootNavigation() {
     // Gets whether the user is logged in or not
-    const  user  = useAuth();
+    const user = useAuth();
     // Returns the main stack if logged in, auth stack if not
     return user ? <UserStack/> : <AuthStack/>;
 }
