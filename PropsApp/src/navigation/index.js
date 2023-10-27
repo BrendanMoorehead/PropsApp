@@ -1,5 +1,6 @@
 // Import custom authentication hook
 import { useAuth } from '../hooks/useAuth';
+import * as React from 'react';
 // Import stacks
 import UserStack from './userStack';
 import AuthStack from './authStack';
