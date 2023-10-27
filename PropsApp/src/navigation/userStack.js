@@ -16,7 +16,12 @@ const Tab = createBottomTabNavigator();
 const userStack = () => {
   return (
     <NavigationContainer>
-      <Tab.Navigator>
+      <Tab.Navigator
+          initialRouteName="Swiping"
+          screenOptions={{
+            headerShown: false,
+        }}
+      >
         <Tab.Screen name="Leaderboard" component={LeaderboardScreen}/>
         <Tab.Screen name="Friends" component={FriendsScreen}/>
         <Tab.Screen name="Swiping" component={SwipingScreen}/>

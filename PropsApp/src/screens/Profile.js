@@ -1,11 +1,17 @@
 import { View, Text } from 'react-native'
 import React from 'react'
+import { useAuth } from '../hooks/useAuth'
+import { FIREBASE_AUTH } from '../config/firebaseConfig'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 const Profile = () => {
+  const user = FIREBASE_AUTH.currentUser;
   return (
-    <View>
+    <SafeAreaView>
       <Text>Profile</Text>
-    </View>
+      <Text>{user.uid}</Text>
+      <Text>{user.email}</Text>
+    </SafeAreaView>
   )
 }
 
