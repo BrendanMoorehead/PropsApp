@@ -1,9 +1,10 @@
-import { View, Text, Button } from 'react-native'
+import { View, Text, Button, StyleSheet } from 'react-native'
 import React from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { FIREBASE_AUTH } from '../config/firebaseConfig'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { signOut, getAuth } from 'firebase/auth'
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Profile = () => {
   const user = FIREBASE_AUTH.currentUser;
@@ -11,6 +12,7 @@ const Profile = () => {
   const logout = async () => {
     try {
       await signOut(auth);
+      await AsyncStorage.removeItem("UserUID");
       console.log("User successfully logged out.");
     }catch(error){
       console.error("Error signing out: ", error);
@@ -28,5 +30,7 @@ const Profile = () => {
     </SafeAreaView>
   )
 }
+
+
 
 export default Profile
