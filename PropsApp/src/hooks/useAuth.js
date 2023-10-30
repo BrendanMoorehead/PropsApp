@@ -24,6 +24,7 @@ export function useAuth(){
                         console.log(docSnap.data());
                         const data = docSnap.data();
                         if (data.username !== undefined){
+                            AsyncStorage.setItem("Username", data.username);
                             setUsernamePicked(true);
                         }
                     }

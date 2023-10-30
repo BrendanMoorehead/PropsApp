@@ -1,16 +1,36 @@
-import { View, Text, Button, StyleSheet } from 'react-native'
+import { View, Text, Button, StyleSheet, Image, TouchableOpacity } from 'react-native'
 import React from 'react'
 import { useAuth } from '../hooks/useAuth'
+import { useEffect, useState } from 'react'
 import { FIREBASE_AUTH } from '../config/firebaseConfig'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { signOut, getAuth } from 'firebase/auth'
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import ProfilePicture from '../components/ProfilePicture'
 
 const Profile = () => {
   const user = FIREBASE_AUTH.currentUser;
   const auth = getAuth();
+  const [username, setUsername] = useState('');
+
+  useEffect(() =>{
+    const getUsername = async () => {
+      try {
+        const storedUsername = await AsyncStorage.getItem("Username");
+        if (storedUsername !== null){
+          setUsername(storedUsername);
+        }
+      }
+      catch (error){
+        console.error("Unable to get username: ",error);
+      }
+    }
+    getUsername();
+  },[]);
+
   const logout = async () => {
     try {
+      
       await signOut(auth);
       await AsyncStorage.removeItem("UserUID");
       console.log("User successfully logged out.");
@@ -19,18 +39,58 @@ const Profile = () => {
     }
   }
   return (
-    <SafeAreaView>
-      <Text>Profile</Text>
-      <Text>{user.uid}</Text>
-      <Text>{user.email}</Text>
-      <Button
-        title="Logout"
-        onPress={logout}
-      />
+    <SafeAreaView
+      style={styles.container}
+    >
+      <Text
+        style={[styles.text, styles.header]}
+      >Profile</Text>
+      <ProfilePicture/>
+      <Text
+        style={styles.text}
+      >{username}</Text>
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity >
+          <View style={styles.button}>
+            <Text style={styles.text}>Settings</Text>
+          </View>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={logout}>
+          <View style={styles.button}>
+            <Text style={styles.text}>Logout</Text>
+          </View>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   )
 }
-
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    backgroundColor: '#1a1a1a'
+  },
+  buttonContainer: {
+    width: '90%',
+    marginTop: 20,
+  },
+  button: {
+    marginTop: 20,
+    backgroundColor: "#333333",
+    paddingVertical: 30,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  text: {
+    color: '#e8e8e8',
+    fontSize: 18
+  },
+  header:{
+    fontWeight: 'bold',
+    marginTop: 20
+  }
+});
 
 
 export default Profile
