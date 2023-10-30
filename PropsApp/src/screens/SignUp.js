@@ -4,7 +4,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useEffect, useState } from 'react';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { TextInput } from 'react-native-gesture-handler';
-
+import { doc, setDoc} from "firebase/firestore";
+import { FIRESTORE_DB } from '../config/firebaseConfig';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 const auth = getAuth();
 
 const SignUp = ({ navigation }) => {
@@ -15,7 +17,15 @@ const SignUp = ({ navigation }) => {
     const signUp = async () => {
         setIsLoading(true);
         try{
-            await createUserWithEmailAndPassword(auth, email, password);
+            const userCred = await createUserWithEmailAndPassword(auth, email, password);
+            const uid = userCred.user.uid;
+            await AsyncStorage.setItem('UserUID', uid);
+            //Add user data to the database
+            //Will overwrite existing data if a user is deleted
+            await setDoc(doc(FIRESTORE_DB, 'users', uid), {
+                email: email,
+                uid: uid,
+            });
         }catch(err){
             console.log(err);
             alert("Unknown Error: " + err);
