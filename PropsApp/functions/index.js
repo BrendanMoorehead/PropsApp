@@ -37,15 +37,19 @@
          return null; // Return null even if there is an error to signify function completion
      }
  });
- 
+//CHANGE TO TAKE ANY STRING
 exports.getPlayerReceptions = functions.pubsub.schedule('0 5 * * *')
  .timeZone('America/New_York')
 .onRun(async (context) => {
     try{
+        const today = new Date();
+        today.setHours(0,0,0,0);
         const gameDays = await admin.firestore().collection('nflGames').get();
         const apiKey = functions.config().prop_odds.api_key;
 
         for (const dayDoc of gameDays.docs){
+            const dayDate = new Date(dayDoc.id);
+            if (dayDate < today) continue;
             const dayData = dayDoc.data();
             const games = dayData.games || [];
 

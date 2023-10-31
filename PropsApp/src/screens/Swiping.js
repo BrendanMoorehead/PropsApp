@@ -7,14 +7,6 @@ const Swiping = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchGames = async () => {
-    try {
-      const response = await fetch('https://api.prop-odds.com/beta/games/nfl?date={today')
-    } catch(error) {
-
-    }
-  }
-
   return (
     <SafeAreaView>
       <Text>Swiping</Text>
