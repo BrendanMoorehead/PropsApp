@@ -38,7 +38,34 @@
      }
  });
  
- // ... (Your date functions here)
+exports.getPlayerReceptions = functions.pubsub.schedule('0 5 * * *')
+ .timeZone('America/New_York')
+.onRun(async (context) => {
+    try{
+        const gameDays = await admin.firestore().collection('nflGames').get();
+        const apiKey = functions.config().prop_odds.api_key;
+
+        for (const dayDoc of gameDays.docs){
+            const dayData = dayDoc.data();
+            const games = dayData.games || [];
+
+            for (const game of games){
+                const gameId = game.game_id;
+                const url = `https://api.prop-odds.com/beta/odds/${gameId}/player_receptions_over_under?api_key=${apiKey}`;
+                const response = await axios.get(url);
+                const playerPropsData = response.data;
+
+                await admin.firestore().collection('playerProps').doc(gameId.toString()).set(playerPropsData);
+
+            }
+            console.log("Player reception props retrieved and stored.");
+            return null;
+        }
+    } catch (error){
+        console.error("Error fetching player props: ", error);
+        return null;
+    }
+});
  
 
 function getNextSunday(){
