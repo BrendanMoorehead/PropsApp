@@ -9,6 +9,7 @@
 
  const functions = require('firebase-functions');
  const admin = require('firebase-admin');
+ const axios = require('axios');
  admin.initializeApp();
  
  const db = admin.firestore();
@@ -31,3 +32,19 @@
      return snapshot.ref.set({ uppercase }, { merge: true });
  });
  
+ exports.getNFLGames = functions.https.onRequest(async (req, res) => {
+    try {
+        const date = '2023-11-05';
+        const apiKey = 'w2KtYORgPjQM5ZRT4SPzo4kSKH1yPrhxadgNgavs1s';
+        const apiUrl = `https://api.prop-odds.com/beta/games/nfl?date=${date}&tz=America/New_York&api_key=${apiKey}`;
+
+        const response = await axios.get(apiUrl);
+        const games = response.data;
+        await admin.firestore().collection('nflGames').doc('2023-11-05').set(games);
+        res.status(200).send("Games added successfully.");
+    } catch (error) {
+        console.error('Error fetching NFL games:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
