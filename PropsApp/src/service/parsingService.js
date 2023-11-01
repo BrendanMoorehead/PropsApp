@@ -33,3 +33,20 @@ export const formatMarketKey = (marketKey) => {
     //Removes underscores and capitalizes the first letter of each word.
     return marketKey.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
 }
+
+/**
+ * Gets the handicap (line) from the outcome object.
+ * 
+ * @param {*} outcomeObj The outcome object from a market.
+ * @returns {string} The handicap line.
+ * @throws Will throw an error if the outcome object is invalid or if the handicap is not found.
+ */
+export const getHandicap = (outcomeObj) => {
+    if (typeof outcomeObj !== 'object' || outcomeObj === null){
+        throw new Error("Object is wrong type or undefined.");
+    }
+    // Get the outcome handicap.
+    const handicap = outcomeObj.handicap;
+    if (handicap === null || handicap.length === 0) throw new Error("No outcome description.");
+    return handicap;
+}

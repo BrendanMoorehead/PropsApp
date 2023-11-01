@@ -26,9 +26,30 @@ export const retrieveSingleMarket = async (gameID) => {
         if (!Array.isArray(data.sportsbooks) || data.sportsbooks.length === 0) { 
             throw new Error("No sportsbooks found for gameID: " + gameID);
         }
-        return data.sportsbooks[0].market || null;
+        return removeDuplicateOutcomes(data.sportsbooks[0].market) || null;
     } catch (e){
         throw new Error ("Failed to retrieve document for gameID: " + gameID);
     }
 }
 
+/**
+ * Removes duplicate outcomes from a market based on the description.
+ * 
+ * @param {*} market A market object.
+ * @returns {market} A new market object with unique outcomes.
+ * @throws error if the market object doesn't exist or the outcomes is not an array.
+ */
+export const removeDuplicateOutcomes = (market) => {
+    if (!market || !Array.isArray(market.outcomes)){
+        throw new Error("Invalid market object.");
+    }
+    const uniqueOutcomes = [];
+    const descriptions = new Set();
+    for (const outcome of market.outcomes){
+        if (!descriptions.has(outcome.description)){
+            descriptions.add(outcome.description);
+            uniqueOutcomes.push(outcome);
+        }
+    }
+    return {...market, outcomes: uniqueOutcomes};
+}

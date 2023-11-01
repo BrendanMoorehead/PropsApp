@@ -34,7 +34,7 @@ const Swiping = () => {
         const marketData = await retrieveSingleMarket(gameId);
         setData(marketData);
         console.log(data);
-        setMarketKey(formatMarketKey(data.market_key));
+        //setMarketKey(formatMarketKey(data.market_key));
       }catch (error){
         console.error("Error getting document", error);
       }
