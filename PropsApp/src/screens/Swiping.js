@@ -5,7 +5,7 @@ import {useEffect, useState} from 'react';
 import { FIRESTORE_DB } from '../config/firebaseConfig';
 import { collection, doc, getDoc } from 'firebase/firestore';
 import { retrieveSingleMarket } from '../service/dataService';
-import { getPlayerName } from '../service/parsingService';
+import { getPlayerName, formatMarketKey } from '../service/parsingService';
 const Swiping = () => {
 
   const gameId = '220a6e10ace10dc524b24c01195b9ebd';
@@ -14,6 +14,7 @@ const Swiping = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [playerNames, setPlayerNames] = useState([]);
+  const [marketKey, setMarketKey] = useState('');
 
   useEffect(() => {
     if (data.outcomes && data.outcomes.length > 0) {
@@ -27,17 +28,19 @@ const Swiping = () => {
       });
       setPlayerNames(names);
     }
-
+    
     const fetchData = async () => {
       try{
         const marketData = await retrieveSingleMarket(gameId);
         setData(marketData);
         console.log(data);
+        setMarketKey(formatMarketKey(data.market_key));
       }catch (error){
         console.error("Error getting document", error);
       }
     };
     fetchData();
+    
   }, [gameId]);
 
   return (
@@ -45,7 +48,7 @@ const Swiping = () => {
       <Text>Swiping</Text>
       {data ? (
       <View>
-      <Text>{data.market_key}</Text>
+      <Text>{marketKey}</Text>
         {
           playerNames.map((name, index) => (
             name && <Text key={index}>{name}</Text>

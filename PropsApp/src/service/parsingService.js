@@ -19,3 +19,17 @@ export const getPlayerName = (outcomeObj) => {
 
     return playerName;
 }
+
+/**
+ * Takes a market key from the API format and returns a more readable string.
+ * 
+ * @param {*} marketKey The key for the market retrieved from the database.
+ * @returns {string} A more readable version of the key.
+ */
+export const formatMarketKey = (marketKey) => {
+    if (typeof marketKey !== 'string' || marketKey === null){
+        throw new Error("Market key is not a string or undefined.");
+    }
+    //Removes underscores and capitalizes the first letter of each word.
+    return marketKey.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
+}
