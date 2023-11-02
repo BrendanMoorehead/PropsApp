@@ -1,76 +1,40 @@
-import { View, Text, FlatList } from 'react-native'
+import { View, Text, FlatList, Button } from 'react-native'
 import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import {useEffect, useState} from 'react';
 import { FIRESTORE_DB } from '../config/firebaseConfig';
 import { collection, doc, getDoc } from 'firebase/firestore';
-import { retrieveSingleMarket } from '../service/dataService';
+import { retrieveSingleMarket, getPropProfilesByGameID } from '../service/dataService';
 import { getPlayerName, formatMarketKey, getHandicap } from '../service/parsingService';
 const Swiping = () => {
 
-  const gameId = '37fa37022f2a0aead9d7eae6ed8fdf73 ';
+  const [document, setDocument] = useState(null);
+  const [docArray, setDocArray] = useState(null);
 
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [playerNames, setPlayerNames] = useState([]);
-  const [handicap, setHandicap] = useState([]);
-  const [marketKey, setMarketKey] = useState('');
+  const gameId = '37fa37022f2a0aead9d7eae6ed8fdf73';
 
   useEffect(() => {
-    const fetchData = async () => {
-      try{
-        const marketData = await retrieveSingleMarket(gameId);
-        setData(marketData);
-        console.log(data);
-        //setMarketKey(formatMarketKey(data.market_key));
-      }catch (error){
-        console.error("Error getting document", error);
-      }
-    };
-    fetchData();
-
-    if (data.outcomes && data.outcomes.length > 0) {
-      const names = data.outcomes.map((outcome) => {
-        try {
-          return getPlayerName(outcome);
-        } catch (error) {
-          console.error("Error getting player name:", error.message);
-          return null; // or some placeholder value
-        }
-      });
-      const handi = data.outcomes.map((outcome) => {
-        try {
-          return getHandicap(outcome);
-        } catch (error) {
-          console.error("Error getting handicap:", error.message);
-          return null; // or some placeholder value
-        }
-      });
-      setHandicap(handi);
-      setPlayerNames(names);
+    getData = async () => {
+      const data = await getPropProfilesByGameID(gameId);
+      setDocArray(data);
     }
-  }, [gameId]);
+    getData();
+  },[]);
+
+  const handlePress = async () => {
+    const randomDoc = docArray[Math.floor(Math.random() * docArray.length)];
+    setDocument(randomDoc);
+  }
 
   return (
     <SafeAreaView>
-      <Text>Swiping</Text>
-      {data ? (
-      <View>
-      <Text>{marketKey}</Text>
-        {
-          playerNames.map((name, index) => (
-            name && <Text key={index}>{name}</Text>
-          ))}
-          {
-          handicap.map((hcp, index) => (
-            hcp && <Text key={index}>{hcp}</Text>
-          ))}
-      </View>
-      ) : (
-        
-      <Text>Loading...</Text>
-    )}
+      <Text>Pick a Prop</Text>
+      <Button title="Press Me"
+      onPress={handlePress}
+      />
+      {document && (
+        <Text>{JSON.stringify(document)}</Text>
+      )}
     </SafeAreaView>
   )
 }

@@ -1,5 +1,5 @@
 import { FIRESTORE_DB } from "../config/firebaseConfig";
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, query, where, collection, getDocs } from 'firebase/firestore';
 
 /**
  * Retrives the data for a single market.
@@ -52,4 +52,24 @@ export const removeDuplicateOutcomes = (market) => {
         }
     }
     return {...market, outcomes: uniqueOutcomes};
+}
+
+export const getPropProfilesByGameID = async (gameID) => {
+    if (typeof gameID !== 'string' || gameID.trim() === ''){
+        throw new Error("Invalid or nonexistent game ID provided.");
+    }
+    try{
+        const collRef = collection(FIRESTORE_DB, 'playerPropProfiles');
+        const q = query(collRef, where("gameId", '==', gameID));
+        const querySnapshot = await getDocs(q);
+
+        const documents = [];
+
+        querySnapshot.forEach(doc =>{
+            documents.push({id: doc.id, data: doc.data()});
+        });
+        return documents;
+    } catch (e) {
+        throw new Error("Failed to retrieve prop profiles");
+    }
 }

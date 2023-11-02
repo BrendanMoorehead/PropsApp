@@ -5,7 +5,7 @@
 
  admin.initializeApp();
  
- exports.getNFLGames = functions.pubsub.schedule('0 16 * * 2') // Every Tuesday at 10:00 AM
+ exports.getNFLGames = functions.pubsub.schedule('0 5 * * 2') // Every Tuesday at 5:00 AM
   .timeZone('America/New_York')
   .onRun(async () => {
      try {
@@ -204,3 +204,36 @@ exports.createPlayerPropsProfile = functions.pubsub.schedule('2 5 * * *')
       console.error("Profile creation failed.", error);
     }
   });
+
+
+  exports.getNFLGameIds = functions.pubsub.schedule('5 5 * * 2') // Every Tuesday at 5:05 AM
+  .timeZone('America/New_York')
+  .onRun(async () => {
+    //Get the upcoming game days
+    const gameDays = [getNextThursday(), getNextSunday(), getNextMonday()];
+    for (const day of gameDays) {
+       const apiDate = convertDateFormat(day);
+       const options = {
+        method: 'GET',
+        url: `https://americanfootballapi.p.rapidapi.com/api/american-football/matches/${apiDate}`,
+        headers: {
+          'X-RapidAPI-Key': functions.config().nfl_api.api_key,
+          'X-RapidAPI-Host': 'americanfootballapi.p.rapidapi.com'
+        }};
+        const response = await axios.get(`https://americanfootballapi.p.rapidapi.com/api/american-football/matches/${apiDate}`, 
+        { headers: options.headers });
+        // console.log(response.data);
+
+        for (const game of response.data.events){
+            if (game.tournament.name === "NFL"){
+                console.log(day + "NFL GAME!!!");
+            }
+        }
+    }
+  });
+
+  const convertDateFormat = (dateString) => {
+    const [year, month, day] = dateString.split("-");
+    return `${day}/${month}/${year}`;
+  }
+
