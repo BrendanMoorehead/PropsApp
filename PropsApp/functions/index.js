@@ -10,7 +10,7 @@
  const functions = require('firebase-functions');
  const admin = require('firebase-admin');
  const axios = require('axios');
- 
+
  admin.initializeApp();
  
  exports.getNFLGames = functions.pubsub.schedule('0 16 * * 2') // Every Tuesday at 10:00 AM
@@ -98,3 +98,117 @@ function getNextThursday(){
     thursday.setDate(now.getDate() + daysUntilThursday);
     return thursday.toISOString().split('T')[0];
 }
+
+function getHandicap(outcomeObj) {
+    if (typeof outcomeObj !== 'object' || outcomeObj === null){
+        throw new Error("Object is wrong type or undefined.");
+    }
+    // Get the outcome handicap.
+    const handicap = outcomeObj.handicap;
+    if (handicap === null || handicap.length === 0) throw new Error("No outcome description.");
+    return handicap;
+}
+function getPlayerName(outcomeObj){
+    if (typeof outcomeObj !== 'object' || outcomeObj === null){
+        throw new Error("Object is wrong type or undefined.");
+    }
+    // Get the outcome description.
+    const desc = outcomeObj.description;
+    if (desc === null || desc.length === 0) throw new Error("No outcome description.");
+
+    // Extract the player name from the outcome description.
+    const playerName = desc.split(' -')[0];
+    if (playerName === null || playerName.length === 0) throw new Error("Player name extraction failed.");
+
+    return playerName;
+}
+
+function formatMarketKey(marketKey) {
+    if (typeof marketKey !== 'string' || marketKey === null){
+        throw new Error("Market key is not a string or undefined.");
+    }
+    //Removes underscores and capitalizes the first letter of each word.
+    return marketKey.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
+}
+const retrieveSingleMarket = async (gameID) => {
+    if (typeof gameID !== 'string' || gameID.trim() === ''){
+        throw new Error("Invalid or nonexistent game ID provided.");
+    }
+    try{
+        const docRef = admin.firestore().collection('playerProps').doc(gameID);
+        const docSnap = await docRef.get();
+
+        if (!docSnap.exists) throw new Error("Document not found for gameID: " + gameID);
+
+        const data = docSnap.data();
+
+        if (!Array.isArray(data.sportsbooks) || data.sportsbooks.length === 0) { 
+            throw new Error("No sportsbooks found for gameID: " + gameID);
+        }
+        return removeDuplicateOutcomes(removeZeroHandicaps(data.sportsbooks[0].market)) || null;
+    } catch (e){
+        throw new Error ("Failed to retrieve document for gameID: " + gameID + e);
+    }
+}
+const removeDuplicateOutcomes = (market) => {
+    if (!market || !Array.isArray(market.outcomes)){
+        throw new Error("Invalid market object.");
+    }
+    const uniqueOutcomes = [];
+    const descriptions = new Set();
+    for (const outcome of market.outcomes){
+        if (!descriptions.has(outcome.description)){
+            descriptions.add(outcome.description);
+            uniqueOutcomes.push(outcome);
+        }
+    }
+    return {...market, outcomes: uniqueOutcomes};
+}
+
+const removeZeroHandicaps = (market) => {
+    if (!market || !Array.isArray(market.outcomes)){
+        throw new Error("Invalid market object.");
+    }
+    const nonZeroHandicaps = [];
+    const handicaps = new Set();
+    for (const outcome of market.outcomes){
+        if (outcome.handicap !== '0'){
+            handicaps.add(outcome.handicap);
+            nonZeroHandicaps.push(outcome);
+        }
+    }
+    return {...market, handicaps: nonZeroHandicaps};
+}
+
+exports.createPlayerPropsProfile = functions.pubsub.schedule('2 5 * * *')
+  .timeZone('America/New_York')
+  .onRun(async (context) => {
+    try {
+      const gameDays = await admin.firestore().collection('playerProps').get();
+      const promises = [];
+      for (const dayDoc of gameDays.docs) {
+        try {
+          const gameId = dayDoc.id;
+          const market = await retrieveSingleMarket(gameId);
+          for (const outcome of market.outcomes) {
+            const playerName = getPlayerName(outcome);
+            const handicap = getHandicap(outcome);
+
+            const profile = {
+              playerName: playerName,
+              handicap: handicap,
+              gameId: gameId
+            }
+            const docId = `${gameId}_${playerName}_${market.market_key}`;
+            promises.push(admin.firestore().collection('playerPropProfiles').doc(docId).set(profile));
+        }
+        } catch (error) {
+          console.error("Couldn't create profiles for game: " + dayDoc.id, error);
+          return;
+        }
+      }
+      await Promise.all(promises);
+    } catch (error) {
+      console.error("Profile creation failed.", error);
+    }
+  });

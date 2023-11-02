@@ -27,7 +27,7 @@
     },
     "singleProjectMode": true,
     "pubsub": {
-      "port": 5003
+      "port": 5004
     }
   }
 }

@@ -8,7 +8,7 @@ import { retrieveSingleMarket } from '../service/dataService';
 import { getPlayerName, formatMarketKey, getHandicap } from '../service/parsingService';
 const Swiping = () => {
 
-  const gameId = '220a6e10ace10dc524b24c01195b9ebd';
+  const gameId = '37fa37022f2a0aead9d7eae6ed8fdf73 ';
 
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -29,7 +29,7 @@ const Swiping = () => {
       }
     };
     fetchData();
-    
+
     if (data.outcomes && data.outcomes.length > 0) {
       const names = data.outcomes.map((outcome) => {
         try {

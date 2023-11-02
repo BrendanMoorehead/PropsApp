@@ -48,5 +48,6 @@ export const getHandicap = (outcomeObj) => {
     // Get the outcome handicap.
     const handicap = outcomeObj.handicap;
     if (handicap === null || handicap.length === 0) throw new Error("No outcome description.");
+    if (handicap === '0') throw new Error("Handicap is 0.");
     return handicap;
 }
