@@ -10,10 +10,8 @@ const auth = getAuth();
 const SignIn = ({ navigation }) => {
   const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
 
     const signIn = async () => {
-        setIsLoading(true);
         try{
             const userCred = await signInWithEmailAndPassword(auth, email, password);     
             const uid = userCred.user.uid;
@@ -22,18 +20,9 @@ const SignIn = ({ navigation }) => {
         }catch(err){
             console.log(err);
             alert("Unknown Error: " + err);
-        }finally{
-            setIsLoading(false);
         }
     }
 
-    if (isLoading){
-        return (
-            <SafeAreaView>
-                <ActivityIndicator size='large' color='#0000ff'/>
-            </SafeAreaView>         
-        )
-    }
   return (
     <SafeAreaView
       style={styles.container}

@@ -49,6 +49,7 @@ exports.getPlayerReceptions = functions.pubsub.schedule('0 5 * * *')
 
         for (const dayDoc of gameDays.docs){
             const dayDate = new Date(dayDoc.id);
+            
             if (dayDate < today) continue;
             const dayData = dayDoc.data();
             const games = dayData.games || [];
@@ -63,8 +64,8 @@ exports.getPlayerReceptions = functions.pubsub.schedule('0 5 * * *')
 
             }
             console.log("Player reception props retrieved and stored.");
-            return null;
         }
+        return null;
     } catch (error){
         console.error("Error fetching player props: ", error);
         return null;

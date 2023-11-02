@@ -9,12 +9,14 @@ const auth = FIREBASE_AUTH;
 export function useAuth(){
     const [user, setUser] = useState(null);
     const [usernamePicked, setUsernamePicked] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         const getUsername = async () => {
             
             //Get if username 
             try{
+                setLoading(true);
                 const uid = await AsyncStorage.getItem('UserUID');
                 if (uid){
                     const docRef = doc(FIRESTORE_DB, 'users', uid);
@@ -34,6 +36,8 @@ export function useAuth(){
                 }
             } catch(error){
                 console.error("Error: ", error);
+            } finally{
+                setLoading(false);
             }
         }
 
@@ -47,5 +51,5 @@ export function useAuth(){
         })
         return unsubFromAuthStateChanged
     }, []);
-    return {user, usernamePicked};
+    return {user, usernamePicked, loading};
 }

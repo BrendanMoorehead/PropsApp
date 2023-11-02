@@ -5,7 +5,7 @@ import {useEffect, useState} from 'react';
 import { FIRESTORE_DB } from '../config/firebaseConfig';
 import { collection, doc, getDoc } from 'firebase/firestore';
 import { retrieveSingleMarket } from '../service/dataService';
-import { getPlayerName, formatMarketKey } from '../service/parsingService';
+import { getPlayerName, formatMarketKey, getHandicap } from '../service/parsingService';
 const Swiping = () => {
 
   const gameId = '220a6e10ace10dc524b24c01195b9ebd';
@@ -14,21 +14,10 @@ const Swiping = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [playerNames, setPlayerNames] = useState([]);
+  const [handicap, setHandicap] = useState([]);
   const [marketKey, setMarketKey] = useState('');
 
   useEffect(() => {
-    if (data.outcomes && data.outcomes.length > 0) {
-      const names = data.outcomes.map((outcome) => {
-        try {
-          return getPlayerName(outcome);
-        } catch (error) {
-          console.error("Error getting player name:", error.message);
-          return null; // or some placeholder value
-        }
-      });
-      setPlayerNames(names);
-    }
-    
     const fetchData = async () => {
       try{
         const marketData = await retrieveSingleMarket(gameId);
@@ -41,6 +30,26 @@ const Swiping = () => {
     };
     fetchData();
     
+    if (data.outcomes && data.outcomes.length > 0) {
+      const names = data.outcomes.map((outcome) => {
+        try {
+          return getPlayerName(outcome);
+        } catch (error) {
+          console.error("Error getting player name:", error.message);
+          return null; // or some placeholder value
+        }
+      });
+      const handi = data.outcomes.map((outcome) => {
+        try {
+          return getHandicap(outcome);
+        } catch (error) {
+          console.error("Error getting handicap:", error.message);
+          return null; // or some placeholder value
+        }
+      });
+      setHandicap(handi);
+      setPlayerNames(names);
+    }
   }, [gameId]);
 
   return (
@@ -52,6 +61,10 @@ const Swiping = () => {
         {
           playerNames.map((name, index) => (
             name && <Text key={index}>{name}</Text>
+          ))}
+          {
+          handicap.map((hcp, index) => (
+            hcp && <Text key={index}>{hcp}</Text>
           ))}
       </View>
       ) : (
