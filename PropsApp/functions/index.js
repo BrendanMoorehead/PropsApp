@@ -18,9 +18,9 @@
          const thursGames = (await axios.get(thursapiUrl)).data;
          const sunGames = (await axios.get(sunapiUrl)).data;
  
-         await admin.firestore().collection('nflGames').doc(getNextMonday()).set(monGames);
-         await admin.firestore().collection('nflGames').doc(getNextThursday()).set(thursGames);
-         await admin.firestore().collection('nflGames').doc(getNextSunday()).set(sunGames);
+         await admin.firestore().collection('futureNflGames').doc(getNextMonday()).set(monGames);
+         await admin.firestore().collection('futureNflGames').doc(getNextThursday()).set(thursGames);
+         await admin.firestore().collection('futureNflGames').doc(getNextSunday()).set(sunGames);
  
          console.log("Games added successfully.");
          return null; // Function executed successfully
@@ -36,7 +36,7 @@ exports.getPlayerReceptions = functions.pubsub.schedule('0 5 * * *')
     try{
         const today = new Date();
         today.setHours(0,0,0,0);
-        const gameDays = await admin.firestore().collection('nflGames').get();
+        const gameDays = await admin.firestore().collection('futureNflGames').get();
         const apiKey = functions.config().prop_odds.api_key;
 
         for (const dayDoc of gameDays.docs){
@@ -181,6 +181,7 @@ exports.createPlayerPropsProfile = functions.pubsub.schedule('2 5 * * *')
       for (const dayDoc of gameDays.docs) {
         try {
           const gameId = dayDoc.id;
+          const gameStartTime = await getDateByGameID(gameId);
           const market = await retrieveSingleMarket(gameId);
           for (const outcome of market.outcomes) {
             const playerName = getPlayerName(outcome);
@@ -189,10 +190,11 @@ exports.createPlayerPropsProfile = functions.pubsub.schedule('2 5 * * *')
             const profile = {
               playerName: playerName,
               handicap: handicap,
-              gameId: gameId
+              gameId: gameId,
+              startTime: gameStartTime
             }
             const docId = `${gameId}_${playerName}_${market.market_key}`;
-            promises.push(admin.firestore().collection('playerPropProfiles').doc(docId).set(profile));
+            promises.push(admin.firestore().collection('futurePlayerPropProfiles').doc(docId).set(profile));
         }
         } catch (error) {
           console.error("Couldn't create profiles for game: " + dayDoc.id, error);
@@ -237,3 +239,20 @@ exports.createPlayerPropsProfile = functions.pubsub.schedule('2 5 * * *')
     return `${day}/${month}/${year}`;
   }
 
+  const getDateByGameID = async (gameId) => {
+    try{
+        const futureNflGamesCollection = admin.firestore().collection('futureNflGames');
+        const snapshot = await futureNflGamesCollection.get();
+
+        for (const doc of snapshot.docs){
+            const games = doc.data().games;
+            const game = games.find(g => g.game_id === gameId);
+            if (game) {
+                return game.start_timestamp;
+            }
+        }
+        return null;
+      } catch (e){
+        throw new Error ("Failed to load documents for game: " + gameId);
+      }
+  }

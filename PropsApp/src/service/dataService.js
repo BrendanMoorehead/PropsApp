@@ -54,6 +54,7 @@ export const removeDuplicateOutcomes = (market) => {
     return {...market, outcomes: uniqueOutcomes};
 }
 
+
 export const getPropProfilesByGameID = async (gameID) => {
     if (typeof gameID !== 'string' || gameID.trim() === ''){
         throw new Error("Invalid or nonexistent game ID provided.");
@@ -73,3 +74,4 @@ export const getPropProfilesByGameID = async (gameID) => {
         throw new Error("Failed to retrieve prop profiles");
     }
 }
+
