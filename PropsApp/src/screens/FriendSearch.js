@@ -6,6 +6,8 @@ import { useState, useEffect } from 'react'
 import filter from "lodash.filter";
 import { indexOf } from 'lodash'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { sendFriendRequest } from '../service/friendService'
+import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry'
 
 
 const FriendSearch = () => {
@@ -15,13 +17,25 @@ const FriendSearch = () => {
   const [error, setError] = useState(null);
   const [fullData, setFullData] = useState([]);
   const [activeUser, setActiveUser] = useState('');
+  const [activeUsername, setActiveUsername] = useState('');
 
   useEffect(() => {
-    setIsLoading(true);
-    currUser = getCurrUser();
-    setActiveUser(currUser);
-    fetchData();
-    setIsLoading(false);
+    const initialize = async () => {
+      try {
+        setIsLoading(true);
+        const currUser = await getCurrUser(); // wait for the promise to resolve
+        setActiveUser(currUser); // set the active user with the resolved value
+        const currUsername = await getCurrUsername(); // wait for the promise to resolve
+        setActiveUsername(currUsername);
+        await fetchData(); // if fetchData is async, you should wait for it too
+      } catch (error) {
+        console.error("Failed to initialize:", error);
+        // Handle any errors here
+      } finally {
+        setIsLoading(false); // Ensure loading is set to false when the operations are done
+      }
+    };
+    initialize();
   }, []);
 
   const handleSearch = (query) => {
@@ -46,8 +60,22 @@ const FriendSearch = () => {
   }
 
   const getCurrUser = async () => {
-    return await AsyncStorage.getItem('UserUID', uid);
+    const id = await AsyncStorage.getItem('UserUID');
+    return id;
   }
+  const getCurrUsername = async () => {
+    const id = await AsyncStorage.getItem('Username');
+    return id;
+  }
+
+  const handlePress = async (uid) => {
+    getCurrUser().then(uid => {
+      console.log(uid); // This logs the resolved value of the Promise.
+    });
+    console.log(uid + "..." + activeUser);
+    sendFriendRequest(activeUser, uid, activeUsername);
+  }
+
 
   const fetchData = async() => {
     try{
@@ -94,7 +122,7 @@ const FriendSearch = () => {
         renderItem={({item}) => (
           <View style={styles.itemContainer}>
             <Text style={styles.textName}>{item.id}</Text>
-            <Button title="Add Friend"/>
+            <Button title="Add Friend" onPress={() => handlePress(item.data.uid)}/>
           </View>
         )}
       ></FlatList>
