@@ -1,4 +1,4 @@
-import { Text, ActivityIndicator, Button, StyleSheet, TextInput } from 'react-native'
+import { Text, ActivityIndicator, Button, StyleSheet, TextInput, TouchableOpacity, View, Pressable } from 'react-native'
 import React from 'react'
 import { SafeAreaView } from 'react-native';
 import { useState } from 'react';
@@ -27,27 +27,33 @@ const SignIn = ({ navigation }) => {
     <SafeAreaView
       style={styles.container}
     >
-      <Text>Sign In</Text>
+      <Text style={[styles.text, styles.header]}>Sign In</Text>
       <TextInput
-        style={styles.input}
+        style={styles.textBox}
         onChangeText={text => setEmail(text)}
         value={email}
         placeholder="Email"
         autoCapitalize="none"
       ></TextInput>
       <TextInput
-        style={styles.input}
+        style={styles.textBox}
         onChangeText={text => setPassword(text)}
         value={password}
         placeholder="Password"
         secureTextEntry={true}
         autoCapitalize="none"
       ></TextInput>
-      <Button
-      title='Sign In'
+      <TouchableOpacity
+      style={[styles.button]}
       onPress={signIn}
-      />
-
+      >
+      <Text style={styles.text}>Sign Up</Text>  
+      </TouchableOpacity>
+      <View>
+        <Pressable onPress={() => navigation.navigate('Sign Up')}>
+          <Text style={styles.text}>Don't have an account? Sign up <Text style={styles.blue}>here.</Text></Text>
+        </Pressable>
+      </View>
     </SafeAreaView>
   )
 }
@@ -55,16 +61,37 @@ const SignIn = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    alignItems: 'center',
     justifyContent: 'center',
-    alignItems: 'center'
+    backgroundColor: '#1a1a1a'
   },
-  input: {
+  text: {
+    color: '#e8e8e8',
+    fontSize: 18
+  },
+  header:{
+    fontWeight: 'bold',
+    marginTop: 20
+  },
+  textBox:{
     width: '80%',
     padding: 20,
     margin: 10,
     borderWidth: 2,
-    borderColor: 'black',
     borderRadius: 10,
+    backgroundColor: 'white'
+  },
+  button:{
+    width: '80%',
+    padding: 20,
+    margin: 10,
+    borderWidth: 2,
+    borderRadius: 10,
+    backgroundColor: '#4a92ff',
+    alignItems: 'center',
+  },
+  blue:{
+    color: '#4a92ff',
   }
 });
 

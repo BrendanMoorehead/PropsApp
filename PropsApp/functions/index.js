@@ -2,6 +2,7 @@
  const functions = require('firebase-functions');
  const admin = require('firebase-admin');
  const axios = require('axios');
+const { connectFirestoreEmulator } = require('firebase/firestore');
 
  admin.initializeApp();
  
@@ -191,7 +192,8 @@ exports.createPlayerPropsProfile = functions.pubsub.schedule('2 5 * * *')
               playerName: playerName,
               handicap: handicap,
               gameId: gameId,
-              startTime: gameStartTime
+              startTime: gameStartTime,
+              enabled: true
             }
             const docId = `${gameId}_${playerName}_${market.market_key}`;
             promises.push(admin.firestore().collection('futurePlayerPropProfiles').doc(docId).set(profile));
@@ -256,3 +258,30 @@ exports.createPlayerPropsProfile = functions.pubsub.schedule('2 5 * * *')
         throw new Error ("Failed to load documents for game: " + gameId);
       }
   }
+
+  exports.disablePastProps = functions.pubsub.schedule('every 20 minutes').onRun(async (context) => {
+      const now = new Date();
+      const propsCollection = admin.firestore().collection('futurePlayerPropProfiles');
+
+      const querySnapshot = await propsCollection.where('enabled', '==', true).get();
+
+      if (querySnapshot.empty){
+          console.log("No props found.");
+          return null;
+      }
+
+      const batch = admin.firestore().batch();
+      querySnapshot.forEach(doc =>{
+          const prop = doc.data();
+          const startTime = new Date(prop.startTime);
+          
+          if (startTime <= now){
+              const docRef = propsCollection.doc(doc.id);
+              batch.update(docRef, {enabled: false});
+              console.log(`Disabling prop ${doc.id}.`);
+          }
+      });
+      await batch.commit()
+      console.log("Checked props and updated as needed.");
+      return null;
+  })

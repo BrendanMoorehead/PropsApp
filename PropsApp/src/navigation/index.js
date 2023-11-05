@@ -4,7 +4,6 @@ import * as React from 'react';
 // Import stacks
 import UserStack from './userStack';
 import AuthStack from './authStack';
-import UsernameScreen from '..//screens/Username'
 import { SafeAreaView, ActivityIndicator, StyleSheet } from 'react-native';
 
 export default function RootNavigation() {
@@ -19,11 +18,7 @@ export default function RootNavigation() {
     }
     // Returns the main stack if logged in, auth stack if not
     if (user) {
-        if (usernamePicked) {
-            return <UserStack/>;
-        }else {
-            return <UsernameScreen/>;
-        }
+        return <UserStack/>;
     }else{
         return <AuthStack/>;
     }

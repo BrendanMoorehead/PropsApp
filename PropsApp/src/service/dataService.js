@@ -60,7 +60,7 @@ export const getPropProfilesByGameID = async (gameID) => {
         throw new Error("Invalid or nonexistent game ID provided.");
     }
     try{
-        const collRef = collection(FIRESTORE_DB, 'playerPropProfiles');
+        const collRef = collection(FIRESTORE_DB, 'futurePlayerPropProfiles');
         const q = query(collRef, where("gameId", '==', gameID));
         const querySnapshot = await getDocs(q);
 
@@ -75,3 +75,19 @@ export const getPropProfilesByGameID = async (gameID) => {
     }
 }
 
+export const getAllFuturePropProfiles = async () => {
+    try{
+        const collRef = collection(FIRESTORE_DB, 'futurePlayerPropProfiles');
+        const q = query(collRef);
+        const querySnapshot = await getDocs(q);
+
+        const documents = [];
+
+        querySnapshot.forEach(doc =>{
+            documents.push({id: doc.id, data: doc.data()});
+        });
+        return documents;
+    } catch (e) {
+        throw new Error("Failed to retrieve prop profiles");
+    }
+}
