@@ -56,6 +56,7 @@ const SignUp = ({ navigation }) => {
               transaction.set(userRef, {username});
           });
           console.log("Username added successfully.");
+          setUsername(uid);
       }catch(error){
           console.error("Error adding username:", error);
           alert(error.message);

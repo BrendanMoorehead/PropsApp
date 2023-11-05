@@ -6,21 +6,15 @@ import { useState, useEffect } from 'react'
 import filter from "lodash.filter";
 import { indexOf } from 'lodash'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { NavigationContainer } from '@react-navigation/native'
-import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs'
-import FriendList from './FriendList'
-import FriendSearch from './FriendSearch'
-import FriendRequests from './FriendRequests'
 
-const Friends = () => {
+
+const FriendSearch = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [data, setData] = useState([]);
   const [error, setError] = useState(null);
   const [fullData, setFullData] = useState([]);
   const [activeUser, setActiveUser] = useState('');
-
-  const Tab = createMaterialTopTabNavigator();
 
   useEffect(() => {
     setIsLoading(true);
@@ -29,10 +23,6 @@ const Friends = () => {
     fetchData();
     setIsLoading(false);
   }, []);
-
-  const getCurrUser = async () => {
-    return await AsyncStorage.getItem('UserUID', uid);
-  }
 
   const handleSearch = (query) => {
     setSearchQuery(query);
@@ -53,6 +43,10 @@ const Friends = () => {
     }else{
       return false;
     }
+  }
+
+  const getCurrUser = async () => {
+    return await AsyncStorage.getItem('UserUID', uid);
   }
 
   const fetchData = async() => {
@@ -83,14 +77,28 @@ const Friends = () => {
   }
 
   return (
-    <SafeAreaView style={{flex:1}}>
-      
-        <Tab.Navigator>
-          <Tab.Screen name="Friend List" component={FriendList}/>
-          <Tab.Screen name="Add Friends" component={FriendSearch}/>
-          <Tab.Screen name="Requests" component={FriendRequests}/>
-        </Tab.Navigator>
-    </SafeAreaView>
+    <View style={{flex:1, marginHorizontal: 20, marginVertical: 20}}>
+      <TextInput 
+      placeholder="Search" 
+      clearButtonMode='always' 
+      style={styles.searchBox}
+      autoCapitalize={false}
+      autoCorrect={false}
+      value={searchQuery}
+      onChangeText={((query) => handleSearch(query))}
+      />
+
+      <FlatList
+        data={data}
+        keyExtractor={(item) => item.id}
+        renderItem={({item}) => (
+          <View style={styles.itemContainer}>
+            <Text style={styles.textName}>{item.id}</Text>
+            <Button title="Add Friend"/>
+          </View>
+        )}
+      ></FlatList>
+    </View>
   )
 }
 const styles = StyleSheet.create({
@@ -118,4 +126,4 @@ const styles = StyleSheet.create({
   }
 });
 
-export default Friends
+export default FriendSearch

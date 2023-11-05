@@ -8,7 +8,7 @@ import { SafeAreaView, ActivityIndicator, StyleSheet } from 'react-native';
 
 export default function RootNavigation() {
     // Gets whether the user is logged in or not
-    const {user, usernamePicked, loading} = useAuth();
+    const {user, loading} = useAuth();
     if (loading) {
         return (
             <SafeAreaView style={styles.loadingContainer}>

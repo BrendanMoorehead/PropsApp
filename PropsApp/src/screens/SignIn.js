@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { setUsername } from '../service/authService';
 const auth = getAuth();
 
 const SignIn = ({ navigation }) => {
@@ -16,6 +17,7 @@ const SignIn = ({ navigation }) => {
             const userCred = await signInWithEmailAndPassword(auth, email, password);     
             const uid = userCred.user.uid;
             await AsyncStorage.setItem('UserUID', uid);
+            await setUsername(uid);
             console.log(uid);
         }catch(err){
             console.log(err);
