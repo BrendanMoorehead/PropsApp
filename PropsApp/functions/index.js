@@ -165,7 +165,7 @@ const removeZeroHandicaps = (market) => {
     const nonZeroHandicaps = [];
     const handicaps = new Set();
     for (const outcome of market.outcomes){
-        if (outcome.handicap !== '0'){
+        if (Number(outcome.handicap) !== 0){
             handicaps.add(outcome.handicap);
             nonZeroHandicaps.push(outcome);
         }
@@ -187,13 +187,14 @@ exports.createPlayerPropsProfile = functions.pubsub.schedule('2 5 * * *')
           for (const outcome of market.outcomes) {
             const playerName = getPlayerName(outcome);
             const handicap = getHandicap(outcome);
-
+            const key = formatMarketKey(market.market_key);
             const profile = {
               playerName: playerName,
               handicap: handicap,
               gameId: gameId,
               startTime: gameStartTime,
-              enabled: true
+              enabled: true,
+              market: key
             }
             const docId = `${gameId}_${playerName}_${market.market_key}`;
             promises.push(admin.firestore().collection('futurePlayerPropProfiles').doc(docId).set(profile));

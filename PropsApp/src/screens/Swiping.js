@@ -11,15 +11,13 @@ const Swiping = () => {
   const [document, setDocument] = useState(null);
   const [docArray, setDocArray] = useState([]);
 
-  const gameId = 'b2d39147aec696cb353de39f6cd6060d';
-
   useEffect(() => {
     getData = async () => {
       const data = await getAllFuturePropProfiles();
       setDocArray(data);
     }
     getData();
-  },[gameId]);
+  },[]);
 
   const handlePress = async () => {
     console.log("Random Press");

@@ -91,3 +91,20 @@ export const getAllFuturePropProfiles = async () => {
         throw new Error("Failed to retrieve prop profiles");
     }
 }
+
+export const getAllUsernames = async () => {
+    try{
+        const collRef = collection(FIRESTORE_DB, 'usernames');
+        const q = query(collRef);
+        const querySnapshot = await getDocs(q);
+
+        const documents = [];
+
+        querySnapshot.forEach(doc =>{
+            documents.push({id: doc.id, data: doc.data()});
+        });
+        return documents;
+    }catch (e) {
+        throw new Error("Failed to usernames.");
+    }
+}
