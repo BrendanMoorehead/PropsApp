@@ -1,6 +1,6 @@
 import { FIRESTORE_DB } from "../config/firebaseConfig";
 import { doc, getDoc, query, where, collection, getDocs, setDoc, Timestamp } from 'firebase/firestore';
-
+import { getUsernameFromUID } from "./dataService";
 export const sendFriendRequest = async (fromUID, toUID, username) => {
     const friendRequestRef = doc(FIRESTORE_DB, 'users', toUID, 'friendRequests', fromUID);
     try{
@@ -20,13 +20,18 @@ export const acceptFriendRequest = async (currentUid, requestFromUid) => {
     const inverseFriendRef = doc(FIRESTORE_DB, 'users', requestFromUid, 'friends', currentUid);
     const friendRequestRef = doc(FIRESTORE_DB, 'users', currentUid, 'friendRequests', requestFromUid);
 
+    const myUsername = await getUsernameFromUID(currentUid);
+    const thierUsername = await getUsernameFromUID(requestFromUid);
+
     try{
         await setDoc(friendRef, {
             friendUID: requestFromUid,
+            friendUsername: thierUsername,
             timestamp: Timestamp.fromDate(new Date()),
         })
         await setDoc(inverseFriendRef, {
             friendUID: currentUid,
+            friendUsername: myUsername,
             timestamp: Timestamp.fromDate(new Date()),
         })
         await setDoc(friendRequestRef, {
@@ -64,5 +69,19 @@ export const getFriendRequests = async (uid) => {
 }
 
 export const getFriendList = async(uid) => {
-    
+    try{
+        const friendsRef = collection(FIRESTORE_DB, 'users', uid, 'friends');
+        const q = query(friendsRef);
+        const querySnapshot = await getDocs(q);
+
+        const documents = [];
+
+        querySnapshot.forEach(doc =>{
+            documents.push({id: doc.id, data: doc.data()});
+        });
+        return documents;
+
+    }catch(e){
+        throw new Error("Failed to get friend list.");
+    }
 }

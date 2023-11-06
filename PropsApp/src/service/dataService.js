@@ -105,6 +105,23 @@ export const getAllUsernames = async () => {
         });
         return documents;
     }catch (e) {
-        throw new Error("Failed to usernames.");
+        throw new Error("Failed to get usernames.");
+    }
+}
+
+export const getUsernameFromUID = async (uid) => {
+    console.log(uid);
+    try{
+        const docRef = doc(FIRESTORE_DB, 'users', uid);
+        const userDoc = await getDoc(docRef);
+
+        if (userDoc.exists()){
+            const username = userDoc.data().username;
+            return username;
+        }else{
+            throw new Error("No user found with user ID: " + uid);
+        }
+    }catch(e){
+        console.log("Failed to get username from UID.");
     }
 }
