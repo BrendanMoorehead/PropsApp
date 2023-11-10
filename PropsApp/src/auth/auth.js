@@ -1,8 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth"
-import { FIREBASE_AUTH } from "../config/firebaseConfig"
-//Contains functions related to firebase authenication
+import { getAuth, signInWithEmailAndPassword, signOut } from "firebase/auth"
 
+//Contains functions related to firebase authenication
 const auth = getAuth();
 /**
  * Logs in the user and adds the userID to async storage.
@@ -19,22 +18,22 @@ export const signInWithEmail = async (email, password) => {
         //Store the user's ID as the persistent token
         await AsyncStorage.setItem('userToken', uid);
         return uid;
-    } catch (e) {
-        console.error(e);
-        throw new Error("Login with email and password failed: " + e.message);
+    } catch (error) {
+        console.error(error);
+        throw new Error("Login with email and password failed: " + error.message);
     }
 }
 
 /**
  * Signs the user out and removes the user token from async storage.
  */
-export const signOut = async () => {
+export const logoutUser = async () => {
     try {
         await signOut(auth);
         await AsyncStorage.removeItem('userToken');
     }catch {
-        console.error(e);
-        throw new Error("Logout failed: " + e.message);
+        console.error(error);
+        throw new Error("Logout failed: " + error.message);
     }
 }
 
@@ -46,8 +45,8 @@ export const getCurrentUser = async () => {
     try {
         const userToken = await AsyncStorage.getItem('userToken');
         return userToken ? auth.currentUser : null;
-    } catch (e) {
-        console.error(e);
+    } catch (error) {
+        console.error(error);
         return null;
     }
 }

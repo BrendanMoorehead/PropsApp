@@ -3,13 +3,11 @@ import React from 'react'
 import { useEffect, useState } from 'react'
 import { FIREBASE_AUTH } from '../config/firebaseConfig'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { signOut, getAuth } from 'firebase/auth'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ProfilePicture from '../components/ProfilePicture'
+import { logoutUser } from '../auth/auth'
 
 const Profile = () => {
-  const user = FIREBASE_AUTH.currentUser;
-  const auth = getAuth();
   const [username, setUsername] = useState('');
 
   useEffect(() =>{
@@ -28,14 +26,10 @@ const Profile = () => {
   },[]);
 
   const logout = async () => {
-    try {
-      
-      await signOut(auth);
-      await AsyncStorage.removeItem("UserUID");
-      await AsyncStorage.removeItem("Username");
-      console.log("User successfully logged out.");
+    try {   
+      await logoutUser();
     }catch(error){
-      console.error("Error signing out: ", error);
+      console.error("Error logging out: " + error);
     }
   }
   return (
