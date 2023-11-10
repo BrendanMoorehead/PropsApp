@@ -11,7 +11,7 @@ const firebaseConfig = {
   appId: "1:147451750774:web:056c8c98a6ca7d0b70b257",
   measurementId: "G-0S5FVYK7RM"
 };
-//Export application and DB
+//Export application, DB, and auth
 export const FIREBASE_APP = initializeApp(firebaseConfig);
 export const FIREBASE_AUTH = initializeAuth(FIREBASE_APP, {
   persistence: getReactNativePersistence(AsyncStorage)

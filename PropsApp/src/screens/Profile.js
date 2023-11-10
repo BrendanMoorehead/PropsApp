@@ -13,7 +13,7 @@ const Profile = () => {
   useEffect(() =>{
     const getUsername = async () => {
       try {
-        const storedUsername = await AsyncStorage.getItem("Username");
+        const storedUsername = await AsyncStorage.getItem("username");
         if (storedUsername !== null){
           setUsername(storedUsername);
         }

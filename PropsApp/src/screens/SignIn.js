@@ -5,7 +5,6 @@ import { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { signInWithEmail } from '../auth/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { setUsername } from '../service/authService';
 
 const SignIn = ({ navigation }) => {
   const [email, setEmail] = useState("");

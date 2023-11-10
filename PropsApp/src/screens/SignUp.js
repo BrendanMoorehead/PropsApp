@@ -7,7 +7,7 @@ import { TextInput } from 'react-native-gesture-handler';
 import { doc, setDoc, runTransaction} from "firebase/firestore";
 import { FIRESTORE_DB, FIREBASE_AUTH } from '../config/firebaseConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import { signUpWithEmail } from '../auth/auth';
 
 const SignUp = ({ navigation }) => {
     const [email, setEmail] = useState("");
@@ -23,16 +23,8 @@ const SignUp = ({ navigation }) => {
         }
         setIsLoading(true);
         try{
-            const userCred = await createUserWithEmailAndPassword(FIREBASE_AUTH, email, password);
-            const uid = userCred.user.uid;
+            const uid = await signUpWithEmail(email, password);
             await addUsernameToUser(uid);
-            await AsyncStorage.setItem('UserUID', uid);
-            //Add user data to the database
-            //Will overwrite existing data if a user is deleted
-            await setDoc(doc(FIRESTORE_DB, 'users', uid), {
-                email: email,
-                uid: uid,
-            }, {merge:true});
         }catch(err){
             console.log(err);
             alert("Unknown Error: " + err);
@@ -53,7 +45,7 @@ const SignUp = ({ navigation }) => {
                   throw new Error("Username already taken.");
               }
               transaction.set(usernamesRef, {uid});
-              transaction.set(userRef, {username});
+              transaction.set(userRef, {username}, {merge: true});
           });
           console.log("Username added successfully.");
           setUsername(uid);

@@ -1,6 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { signInWithEmailAndPassword, signOut } from "firebase/auth"
-import { FIREBASE_AUTH } from "../config/firebaseConfig";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "firebase/auth"
+import { FIREBASE_AUTH, FIRESTORE_DB } from "../config/firebaseConfig";
+import { setDoc, doc } from "firebase/firestore";
+import { getUsernameFromUID } from "../service/dataService";
 //Contains functions related to firebase authenication
 /**
  * Logs in the user and adds the userID to async storage.
@@ -14,12 +16,39 @@ export const signInWithEmail = async (email, password) => {
     try {
         const response = await signInWithEmailAndPassword(FIREBASE_AUTH, email, password);
         const uid = response.user.uid;
-        //Store the user's ID as the persistent token
+        const username = await getUsernameFromUID(uid);
+        //Store the user's ID and username as tokens
         await AsyncStorage.setItem('userToken', uid);
+        await AsyncStorage.setItem('username', username);
         return uid;
     } catch (error) {
         console.error(error);
         throw new Error("Login with email and password failed: " + error.message);
+    }
+}
+/**
+ * Creates a new user in firebase auth and adds the userID to async storage.
+ * 
+ * @param {*} email The user's account email.
+ * @param {*} password The user's account password.
+ * @returns The user ID of the user who was just created.
+ * @throws {Error} if user account creation fails.
+ */
+export const signUpWithEmail = async (email, password) => {
+    try{
+        const response = await createUserWithEmailAndPassword(FIREBASE_AUTH, email, password);
+        const uid = response.user.uid;
+        await AsyncStorage.setItem('userToken', uid);
+        await setDoc(doc(FIRESTORE_DB, 'users', uid), {
+            email: email,
+            uid: uid,
+        }, {merge:true});
+        const username = await getUsernameFromUID(uid);
+        await AsyncStorage.setItem('username', username);
+        return uid;
+    } catch (error){
+        console.error(error);
+        throw new Error("Registration with email and password failed: " + error.message);
     }
 }
 
@@ -30,6 +59,7 @@ export const logoutUser = async () => {
     try {
         await signOut(FIREBASE_AUTH);
         await AsyncStorage.removeItem('userToken');
+        await AsyncStorage.removeItem('username');
     }catch {
         console.error(error);
         throw new Error("Logout failed: " + error.message);
