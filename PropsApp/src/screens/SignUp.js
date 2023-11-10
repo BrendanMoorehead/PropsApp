@@ -2,12 +2,12 @@ import { View, Text, ActivityIndicator, Button, Alert, StyleSheet, TouchableOpac
 import React from 'react'
 import { SafeAreaView, withSafeAreaInsets } from 'react-native-safe-area-context';
 import { useEffect, useState } from 'react';
-import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { TextInput } from 'react-native-gesture-handler';
 import { doc, setDoc, runTransaction} from "firebase/firestore";
-import { FIRESTORE_DB } from '../config/firebaseConfig';
+import { FIRESTORE_DB, FIREBASE_AUTH } from '../config/firebaseConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-const auth = getAuth();
+
 
 const SignUp = ({ navigation }) => {
     const [email, setEmail] = useState("");
@@ -23,7 +23,7 @@ const SignUp = ({ navigation }) => {
         }
         setIsLoading(true);
         try{
-            const userCred = await createUserWithEmailAndPassword(auth, email, password);
+            const userCred = await createUserWithEmailAndPassword(FIREBASE_AUTH, email, password);
             const uid = userCred.user.uid;
             await addUsernameToUser(uid);
             await AsyncStorage.setItem('UserUID', uid);

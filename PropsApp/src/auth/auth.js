@@ -1,8 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { getAuth, signInWithEmailAndPassword, signOut } from "firebase/auth"
-
+import { signInWithEmailAndPassword, signOut } from "firebase/auth"
+import { FIREBASE_AUTH } from "../config/firebaseConfig";
 //Contains functions related to firebase authenication
-const auth = getAuth();
 /**
  * Logs in the user and adds the userID to async storage.
  * 
@@ -13,7 +12,7 @@ const auth = getAuth();
  */
 export const signInWithEmail = async (email, password) => {
     try {
-        const response = await signInWithEmailAndPassword(auth, email, password);
+        const response = await signInWithEmailAndPassword(FIREBASE_AUTH, email, password);
         const uid = response.user.uid;
         //Store the user's ID as the persistent token
         await AsyncStorage.setItem('userToken', uid);
@@ -29,7 +28,7 @@ export const signInWithEmail = async (email, password) => {
  */
 export const logoutUser = async () => {
     try {
-        await signOut(auth);
+        await signOut(FIREBASE_AUTH);
         await AsyncStorage.removeItem('userToken');
     }catch {
         console.error(error);

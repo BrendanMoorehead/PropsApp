@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
+import { initializeAuth, getReactNativePersistence } from "firebase/auth";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 const firebaseConfig = {
   apiKey: "AIzaSyCitURtScrL3bRsBHCXuXbB7eBtQ3J82dI",
   authDomain: "playerpropapp.firebaseapp.com",
@@ -12,5 +13,7 @@ const firebaseConfig = {
 };
 //Export application and DB
 export const FIREBASE_APP = initializeApp(firebaseConfig);
-export const FIREBASE_AUTH = getAuth(FIREBASE_APP);
+export const FIREBASE_AUTH = initializeAuth(FIREBASE_APP, {
+  persistence: getReactNativePersistence(AsyncStorage)
+});
 export const FIRESTORE_DB = getFirestore(FIREBASE_APP);

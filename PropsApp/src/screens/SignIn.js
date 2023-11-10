@@ -2,11 +2,10 @@ import { Text, ActivityIndicator, Button, StyleSheet, TextInput, TouchableOpacit
 import React from 'react'
 import { SafeAreaView } from 'react-native';
 import { useState } from 'react';
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
-
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmail } from '../auth/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setUsername } from '../service/authService';
-const auth = getAuth();
 
 const SignIn = ({ navigation }) => {
   const [email, setEmail] = useState("");
@@ -14,10 +13,7 @@ const SignIn = ({ navigation }) => {
 
     const signIn = async () => {
         try{
-            const userCred = await signInWithEmailAndPassword(auth, email, password);     
-            const uid = userCred.user.uid;
-            await AsyncStorage.setItem('UserUID', uid);
-            await setUsername(uid);
+            const uid = signInWithEmail(email, password);
             console.log(uid);
         }catch(err){
             console.log(err);
