@@ -6,17 +6,7 @@ import UserStack from './userStack';
 import AuthStack from './authStack';
 import { SafeAreaView, ActivityIndicator, StyleSheet } from 'react-native';
 
-export default function RootNavigation() {
-    // Gets whether the user is logged in or not
-    const {user, loading} = useAuth();
-    if (loading) {
-        return (
-            <SafeAreaView style={styles.loadingContainer}>
-                <ActivityIndicator size="large" />
-            </SafeAreaView>
-        );
-    }
-    // Returns the main stack if logged in, auth stack if not
+export default function RootNavigation({user}) {
     if (user) {
         return <UserStack/>;
     }else{
