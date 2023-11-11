@@ -31,20 +31,20 @@ export const signInWithEmail = async (email, password) => {
  * 
  * @param {*} email The user's account email.
  * @param {*} password The user's account password.
+ * @param {*} username The user's username.
  * @returns The user ID of the user who was just created.
  * @throws {Error} if user account creation fails.
  */
-export const signUpWithEmail = async (email, password) => {
+export const signUpWithEmail = async (email, password, username) => {
     try{
         const response = await createUserWithEmailAndPassword(FIREBASE_AUTH, email, password);
         const uid = response.user.uid;
         await AsyncStorage.setItem('userToken', uid);
+        await AsyncStorage.setItem('username', username);
         await setDoc(doc(FIRESTORE_DB, 'users', uid), {
             email: email,
             uid: uid,
         }, {merge:true});
-        const username = await getUsernameFromUID(uid);
-        await AsyncStorage.setItem('username', username);
         return uid;
     } catch (error){
         console.error(error);

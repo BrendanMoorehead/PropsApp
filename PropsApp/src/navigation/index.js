@@ -8,7 +8,7 @@ import { SafeAreaView, ActivityIndicator, StyleSheet } from 'react-native';
 
 export default function RootNavigation({user}) {
     if (user) {
-        return <UserStack/>;
+        return <UserStack user={user}/>;
     }else{
         return <AuthStack/>;
     }

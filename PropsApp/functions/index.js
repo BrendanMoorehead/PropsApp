@@ -116,7 +116,7 @@ function getPlayerName(outcomeObj){
     return playerName;
 }
 
-function formatMarketKey(marketKey) {
+async function formatMarketKey(marketKey) {
     if (typeof marketKey !== 'string' || marketKey === null){
         throw new Error("Market key is not a string or undefined.");
     }
@@ -187,9 +187,10 @@ exports.createPlayerPropsProfile = functions.pubsub.schedule('2 5 * * *')
           for (const outcome of market.outcomes) {
             const playerName = getPlayerName(outcome);
             const handicap = getHandicap(outcome);
-            const key = formatMarketKey(market.market_key);
+            const key = await formatMarketKey(market.market_key);
             const profile = {
               playerName: playerName,
+              marketKey: market.market_key,
               handicap: handicap,
               gameId: gameId,
               startTime: gameStartTime,

@@ -14,7 +14,7 @@ import SwipingScreen from '../screens/Swiping'
 
 const Tab = createBottomTabNavigator();
 
-const userStack = () => {
+const userStack = ({user}) => {
   return (
     <NavigationContainer
       style={styles.nav}
@@ -49,7 +49,7 @@ const userStack = () => {
         })}
       >
         <Tab.Screen name="Leaderboard" component={LeaderboardScreen}/>
-        <Tab.Screen name="Friends" component={FriendsScreen}/>
+        <Tab.Screen name="Friends" component={FriendsScreen} initialParams={{user:user}}/>
         <Tab.Screen name="Swiping" component={SwipingScreen}/>
         <Tab.Screen name="Stats" component={StatsScreen}/>
         <Tab.Screen name="Profile" component={ProfileScreen}/>

@@ -12,7 +12,8 @@ import FriendList from './FriendList'
 import FriendSearch from './FriendSearch'
 import FriendRequests from './FriendRequests'
 
-const Friends = () => {
+const Friends = ({route}) => {
+  const {user} = route.params;
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [data, setData] = useState([]);
@@ -87,7 +88,7 @@ const Friends = () => {
       
         <Tab.Navigator>
           <Tab.Screen name="Friend List" component={FriendList}/>
-          <Tab.Screen name="Add Friends" component={FriendSearch}/>
+          <Tab.Screen name="Add Friends" component={FriendSearch} initialParams={{user:user}}/>
           <Tab.Screen name="Requests" component={FriendRequests}/>
         </Tab.Navigator>
     </SafeAreaView>

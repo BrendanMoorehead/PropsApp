@@ -23,7 +23,7 @@ const SignUp = ({ navigation }) => {
         }
         setIsLoading(true);
         try{
-            const uid = await signUpWithEmail(email, password);
+            const uid = await signUpWithEmail(email, password, username);
             await addUsernameToUser(uid);
         }catch(err){
             console.log(err);

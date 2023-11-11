@@ -4,30 +4,29 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { getAllUsernames } from '../service/dataService'
 import { useState, useEffect } from 'react'
 import filter from "lodash.filter";
-import { indexOf } from 'lodash'
+import { indexOf, set } from 'lodash'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { sendFriendRequest } from '../service/friendService'
 import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry'
 
 
-const FriendSearch = () => {
+const FriendSearch = ({route}) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [data, setData] = useState([]);
   const [error, setError] = useState(null);
   const [fullData, setFullData] = useState([]);
-  const [activeUser, setActiveUser] = useState('');
-  const [activeUsername, setActiveUsername] = useState('');
+  const [activeUser, setActiveUser] = useState(null);
+  const [username, setUsername] = useState(null);
 
   useEffect(() => {
     const initialize = async () => {
       try {
         setIsLoading(true);
-        const currUser = await getCurrUser(); // wait for the promise to resolve
-        setActiveUser(currUser); // set the active user with the resolved value
-        const currUsername = await getCurrUsername(); // wait for the promise to resolve
-        setActiveUsername(currUsername);
-        await fetchData(); // if fetchData is async, you should wait for it too
+        const userToken = await AsyncStorage.getItem("userToken");
+        const username = await AsyncStorage.getItem("username");
+        setActiveUser(userToken);
+        setUsername(username);
       } catch (error) {
         console.error("Failed to initialize:", error);
         // Handle any errors here
@@ -36,47 +35,37 @@ const FriendSearch = () => {
       }
     };
     initialize();
+    console.log(activeUser);
   }, []);
 
+  useEffect(() => {
+    // Call fetchData when the component mounts
+    fetchData();
+  }, [activeUser]); 
+
+
   const handleSearch = (query) => {
-    setSearchQuery(query);
-    const formattedQuery = query.toLowerCase();
-    const filteredData = filter(fullData, (user) => {
-      return contains(user, formattedQuery);
-    });
-    setData(filteredData);
-  }
-
-  const contains = (user, query) => {
-    const id = user.id.toLowerCase();
-    if (user.uid === activeUser){
-      return false;
-    }
-    if (id.includes(query)){
-      return true;
-    }else{
-      return false;
+    try{
+      setSearchQuery(query);
+      const formattedQuery = query.toLowerCase();
+      const filteredData = filter(fullData, (user) => {
+        return contains(user, formattedQuery, activeUser);
+      });
+      setData(filteredData);
+    } catch (error) {
+      throw new Error("Search query failed: " + error);
     }
   }
-
-  const getCurrUser = async () => {
-    const id = await AsyncStorage.getItem('UserUID');
-    return id;
+  const contains = (user, query, activeUser) => {
+    const id = String(user.id).toLowerCase();
+    return user.uid !== activeUser && id.includes(query);
   }
-  const getCurrUsername = async () => {
-    const id = await AsyncStorage.getItem('Username');
-    return id;
-  }
-
   const handlePress = async (uid) => {
     getCurrUser().then(uid => {
       console.log(uid); // This logs the resolved value of the Promise.
     });
-    console.log(uid + "..." + activeUser);
-    sendFriendRequest(activeUser, uid, activeUsername);
+    sendFriendRequest(activeUser, uid, username);
   }
-
-
   const fetchData = async() => {
     try{
       usernameRef = await getAllUsernames();
