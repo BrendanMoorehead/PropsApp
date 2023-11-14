@@ -373,8 +373,31 @@ exports.getAllTeams = functions.pubsub.schedule('6 5 1 * *') //Runs once a month
 
 exports.getAllPlayers = functions.pubsub.schedule('6 5 1 * *') //Runs once a month
 .onRun(async(context)=> {
-
-    
+    const promises = [];
+    const teamIDs = [4412, 4413, 4414, 4415, 4416, 4417, 4418, 4419, 4420, 4421, 4422, 4423, 4424, 
+        4425, 4426, 4427, 4428, 4429, 4430, 4431, 4432, 4386, 4324, 4287, 4390, 4388, 4389, 4387, 4392,
+        4345, 4391, 4393];
+        try{
+            for (const team of teamIDs){
+                const options = {
+                    method: 'GET',
+                    url: `https://americanfootballapi.p.rapidapi.com/api/american-football/team/${team}/players`,
+                    headers: {
+                    'X-RapidAPI-Key': functions.config().nfl_api.api_key,
+                    'X-RapidAPI-Host': 'americanfootballapi.p.rapidapi.com'
+                }};
+                const response = await axios.get(`https://americanfootballapi.p.rapidapi.com/api/american-football/team/${team}/players`, 
+                { headers: options.headers });
+                const nflTeamPlayers = response.data.players;
+                for (const player of nflTeamPlayers) {
+                    const playerRef = admin.firestore().collection('nflPlayers').doc();
+                    promises.push(playerRef.set(player));
+                }
+                await delay(200);
+            }
+        }catch (error){
+            console.error("Failed to get NFL players");
+        }
 });
 
 function delay(ms){
