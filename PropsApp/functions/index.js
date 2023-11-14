@@ -2,7 +2,6 @@
  const functions = require('firebase-functions');
  const admin = require('firebase-admin');
  const axios = require('axios');
-const { connectFirestoreEmulator } = require('firebase/firestore');
 
  admin.initializeApp();
  
@@ -19,9 +18,9 @@ const { connectFirestoreEmulator } = require('firebase/firestore');
          const thursGames = (await axios.get(thursapiUrl)).data;
          const sunGames = (await axios.get(sunapiUrl)).data;
  
-         await admin.firestore().collection('futureNflGames').doc(getNextMonday()).set(monGames);
-         await admin.firestore().collection('futureNflGames').doc(getNextThursday()).set(thursGames);
-         await admin.firestore().collection('futureNflGames').doc(getNextSunday()).set(sunGames);
+         await admin.firestore().collection('futureNflGameDays').doc(getNextMonday()).set(monGames);
+         await admin.firestore().collection('futureNflGameDays').doc(getNextThursday()).set(thursGames);
+         await admin.firestore().collection('futureNflGameDays').doc(getNextSunday()).set(sunGames);
  
          console.log("Games added successfully.");
          return null; // Function executed successfully
@@ -30,6 +29,17 @@ const { connectFirestoreEmulator } = require('firebase/firestore');
          return null; // Return null even if there is an error to signify function completion
      }
  });
+
+ exports.createIndivGames = functions.pubsub.schedule('5 5 * * 2')
+ .timeZone("America/New_York")
+ .onRun(async () => {
+    try {
+        const gameDays = await admin.firestore().collection('futureNFLGameDays').get();
+    }
+    catch (error) {
+        throw new Error("failed to create individual games: " + error.message);
+    }
+ })
 //CHANGE TO TAKE ANY STRING
 exports.getPlayerReceptions = functions.pubsub.schedule('0 5 * * *')
  .timeZone('America/New_York')
@@ -37,7 +47,7 @@ exports.getPlayerReceptions = functions.pubsub.schedule('0 5 * * *')
     try{
         const today = new Date();
         today.setHours(0,0,0,0);
-        const gameDays = await admin.firestore().collection('futureNflGames').get();
+        const gameDays = await admin.firestore().collection('futureNflGameDays').get();
         const apiKey = functions.config().prop_odds.api_key;
 
         for (const dayDoc of gameDays.docs){
@@ -187,15 +197,12 @@ exports.createPlayerPropsProfile = functions.pubsub.schedule('2 5 * * *')
           for (const outcome of market.outcomes) {
             const playerName = getPlayerName(outcome);
             const handicap = getHandicap(outcome);
-            const key = await formatMarketKey(market.market_key);
             const profile = {
               playerName: playerName,
               marketKey: market.market_key,
               handicap: handicap,
               gameId: gameId,
               startTime: gameStartTime,
-              enabled: true,
-              market: key
             }
             const docId = `${gameId}_${playerName}_${market.market_key}`;
             promises.push(admin.firestore().collection('futurePlayerPropProfiles').doc(docId).set(profile));
@@ -215,26 +222,32 @@ exports.createPlayerPropsProfile = functions.pubsub.schedule('2 5 * * *')
   exports.getNFLGameIds = functions.pubsub.schedule('5 5 * * 2') // Every Tuesday at 5:05 AM
   .timeZone('America/New_York')
   .onRun(async () => {
+    const promises = [];
+    const uniqueGameIds = {};
     //Get the upcoming game days
-    const gameDays = [getNextThursday(), getNextSunday(), getNextMonday()];
-    for (const day of gameDays) {
-       const apiDate = convertDateFormat(day);
-       const options = {
-        method: 'GET',
-        url: `https://americanfootballapi.p.rapidapi.com/api/american-football/matches/${apiDate}`,
-        headers: {
-          'X-RapidAPI-Key': functions.config().nfl_api.api_key,
-          'X-RapidAPI-Host': 'americanfootballapi.p.rapidapi.com'
-        }};
-        const response = await axios.get(`https://americanfootballapi.p.rapidapi.com/api/american-football/matches/${apiDate}`, 
-        { headers: options.headers });
-        // console.log(response.data);
-
-        for (const game of response.data.events){
-            if (game.tournament.name === "NFL"){
-                console.log(day + "NFL GAME!!!");
+    try{
+        const gameDays = [getNextThursday(), getNextSunday(), getNextMonday()];
+        for (const day of gameDays) {
+        const apiDate = convertDateFormat(day);
+        const options = {
+            method: 'GET',
+            url: `https://americanfootballapi.p.rapidapi.com/api/american-football/matches/${apiDate}`,
+            headers: {
+            'X-RapidAPI-Key': functions.config().nfl_api.api_key,
+            'X-RapidAPI-Host': 'americanfootballapi.p.rapidapi.com'
+            }};
+            const response = await axios.get(`https://americanfootballapi.p.rapidapi.com/api/american-football/matches/${apiDate}`, 
+            { headers: options.headers });
+            const nflGames = response.data.events.filter(game => game.tournament && game.tournament.name === "NFL");
+            for (const game of nflGames){
+                uniqueGameIds[game.id] = true;
+                const gameRef = admin.firestore().collection('NFLapiGames').doc(game.id.toString());
+                await promises.push(gameRef.set(game));
             }
         }
+        await Promise.all(promises);
+    } catch (error) {
+        throw new Error("Failed to get NFLAPI games: "  + error.message);
     }
   });
 
@@ -245,7 +258,7 @@ exports.createPlayerPropsProfile = functions.pubsub.schedule('2 5 * * *')
 
   const getDateByGameID = async (gameId) => {
     try{
-        const futureNflGamesCollection = admin.firestore().collection('futureNflGames');
+        const futureNflGamesCollection = admin.firestore().collection('futureNflGameDays');
         const snapshot = await futureNflGamesCollection.get();
 
         for (const doc of snapshot.docs){
@@ -287,3 +300,83 @@ exports.createPlayerPropsProfile = functions.pubsub.schedule('2 5 * * *')
       console.log("Checked props and updated as needed.");
       return null;
   })
+
+  exports.removePastGames = functions.pubsub.schedule('59 23 * * 0,1,4')
+  .onRun(async(context)=> {
+    
+  });
+
+exports.createCompositeNFLGames = functions.pubsub.schedule('6 5 * * 2')
+.onRun(async(context)=> {
+    const futureNFLGamesSnapshot = await admin.firestore().collection('futureNflGameDays').get();
+    const batchOperations = [];
+
+    for (const doc of futureNFLGamesSnapshot.docs){
+        //Each FutureNFLGames day
+        const games = doc.data().games;
+        //Each game listed in each day
+        for (const game of games){
+            const matchedGameSnapshot = await admin.firestore().collection('NFLapiGames')
+                .where('homeTeam.name', '==', game.home_team)
+                .where('awayTeam.name', '==', game.away_team)
+                .limit(1)
+                .get();
+                if (!matchedGameSnapshot.empty) {
+                    // If a match is found, create a new document in the NFLGames collection
+                    const matchedGame = matchedGameSnapshot.docs[0];
+                    const newNFLGameRef = admin.firestore().collection('NFLGames').doc();
+    
+                    batchOperations.push(
+                        newNFLGameRef.set({
+                            ...game, // Spread the existing game data
+                            apiGameId: matchedGame.id // Add the reference ID from the matched game
+                        })
+                    );
+                }
+        }
+    }
+     // Execute all batch operations
+     try {
+        await Promise.all(batchOperations);
+
+    } catch (error) {
+        console.error('Error creating NFLGames collection: ', error);
+    }
+});
+
+exports.getAllTeams = functions.pubsub.schedule('6 5 1 * *') //Runs once a month
+.onRun(async(context)=> {
+    const promises = [];
+    const teamIDs = [4412, 4413, 4414, 4415, 4416, 4417, 4418, 4419, 4420, 4421, 4422, 4423, 4424, 
+        4425, 4426, 4427, 4428, 4429, 4430, 4431, 4432, 4386, 4324, 4287, 4390, 4388, 4389, 4387, 4392,
+        4345, 4391, 4393];
+    try{
+        for (const team of teamIDs){
+            const options = {
+                method: 'GET',
+                url: `https://americanfootballapi.p.rapidapi.com/api/american-football/team/${team}`,
+                headers: {
+                'X-RapidAPI-Key': functions.config().nfl_api.api_key,
+                'X-RapidAPI-Host': 'americanfootballapi.p.rapidapi.com'
+            }};
+            const response = await axios.get(`https://americanfootballapi.p.rapidapi.com/api/american-football/team/${team}`, 
+            { headers: options.headers });
+            const nflTeam = response.data;
+            const teamRef = admin.firestore().collection('nflTeams').doc(team.toString());
+            promises.push(teamRef.set(nflTeam));
+            await delay(200);
+        }
+    }catch (error){
+        console.error("Failed to get NFL teams");
+    }
+});
+
+exports.getAllPlayers = functions.pubsub.schedule('6 5 1 * *') //Runs once a month
+.onRun(async(context)=> {
+
+    
+});
+
+function delay(ms){
+    return new Promise(resolve => setTimeout(resolve, ms));
+}

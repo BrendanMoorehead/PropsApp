@@ -49,7 +49,7 @@ const Swiping = () => {
       {document && (
         <View style={styles.playerWrapper}>     
         <Text style={styles.text}>{document.data.playerName}</Text>
-        <Text style={styles.text}>Player Receptions</Text>
+        <Text style={styles.text}>{document.data.market}</Text>
         <Text style={styles.text}>O/U {document.data.handicap}</Text>
         </View>
       )}
