@@ -30,16 +30,6 @@
      }
  });
 
- exports.createIndivGames = functions.pubsub.schedule('5 5 * * 2')
- .timeZone("America/New_York")
- .onRun(async () => {
-    try {
-        const gameDays = await admin.firestore().collection('futureNFLGameDays').get();
-    }
-    catch (error) {
-        throw new Error("failed to create individual games: " + error.message);
-    }
- })
 //CHANGE TO TAKE ANY STRING
 exports.getPlayerReceptions = functions.pubsub.schedule('0 5 * * *')
  .timeZone('America/New_York')
@@ -75,33 +65,56 @@ exports.getPlayerReceptions = functions.pubsub.schedule('0 5 * * *')
     }
 });
  
-
+/**
+ * Gets the date of upcoming Sunday.
+ * 
+ * @returns the date in YYYY-MM-DD format.
+ */
 function getNextSunday(){
     const now = new Date();
-    //Sunday is 0
     const dayOfWeek = now.getDay();
+    // Sunday in number format is 0.
     const daysUntilSunday = (7 - dayOfWeek) % 7;
     const sunday = new Date(now);
     sunday.setDate(now.getDate() + daysUntilSunday);
     return sunday.toISOString().split('T')[0];
 }
+
+/**
+ * Gets the date of upcoming Monday.
+ * 
+ * @returns the date in YYYY-MM-DD format.
+ */
 function getNextMonday(){
     const now = new Date();
     const dayOfWeek = now.getDay();
+    // Monday in number format is 1.
     const daysUntilMonday = (1 + 7 - dayOfWeek) % 7;
     const monday = new Date(now);
     monday.setDate(now.getDate() + daysUntilMonday);
     return monday.toISOString().split('T')[0];
 }
+
+/**
+ * Gets the date of upcoming Thursday.
+ * 
+ * @returns the date in YYYY-MM-DD format.
+ */
 function getNextThursday(){
     const now = new Date();
     const dayOfWeek = now.getDay();
+    // Thursday in number format is 4.
     const daysUntilThursday = (4 + 7 - dayOfWeek) % 7;
     const thursday = new Date(now);
     thursday.setDate(now.getDate() + daysUntilThursday);
     return thursday.toISOString().split('T')[0];
 }
 
+/**
+ * Gets the O/U handicap for a given outcome.
+ * @param {*} outcomeObj An outcome object from a playerProps document.
+ * @returns The handicap (O/U number for prop).
+ */
 function getHandicap(outcomeObj) {
     if (typeof outcomeObj !== 'object' || outcomeObj === null){
         throw new Error("Object is wrong type or undefined.");
@@ -111,6 +124,15 @@ function getHandicap(outcomeObj) {
     if (handicap === null || handicap.length === 0) throw new Error("No outcome description.");
     return handicap;
 }
+
+/**
+ * Gets the player's name for a given outcome.
+ * 
+ * NOTE: Name extraction is based on the FanDuel markets.
+ * 
+ * @param {*} outcomeObj An outcome object from a playerProps document.
+ * @returns The name of the player for the given outcome.
+ */
 function getPlayerName(outcomeObj){
     if (typeof outcomeObj !== 'object' || outcomeObj === null){
         throw new Error("Object is wrong type or undefined.");
@@ -125,7 +147,12 @@ function getPlayerName(outcomeObj){
 
     return playerName;
 }
-
+/**
+ * Removes underscores from a market key to make it more readable.
+ * 
+ * @param {*} marketKey An underscore delimted string describing the prop market.
+ * @returns The formatted market key.
+ */
 async function formatMarketKey(marketKey) {
     if (typeof marketKey !== 'string' || marketKey === null){
         throw new Error("Market key is not a string or undefined.");
@@ -133,6 +160,13 @@ async function formatMarketKey(marketKey) {
     //Removes underscores and capitalizes the first letter of each word.
     return marketKey.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
 }
+
+/**
+ * Gets a market for a given game.
+ * 
+ * @param {*} gameID A game ID from the Odds API.
+ * @returns A document of the market for a given game.
+ */
 const retrieveSingleMarket = async (gameID) => {
     if (typeof gameID !== 'string' || gameID.trim() === ''){
         throw new Error("Invalid or nonexistent game ID provided.");
@@ -153,6 +187,13 @@ const retrieveSingleMarket = async (gameID) => {
         throw new Error ("Failed to retrieve document for gameID: " + gameID + e);
     }
 }
+
+/**
+ * Removes duplicate outcomes from a given market.
+ * 
+ * @param {*} market An object representing a Odds API market.
+ * @returns A market object without the duplicate outcomes.
+ */
 const removeDuplicateOutcomes = (market) => {
     if (!market || !Array.isArray(market.outcomes)){
         throw new Error("Invalid market object.");
@@ -168,6 +209,13 @@ const removeDuplicateOutcomes = (market) => {
     return {...market, outcomes: uniqueOutcomes};
 }
 
+/**
+ * Removes outcomes with a 0 handicap (O/U line).
+ * This is needed as alternate betting lines (higher or lower) are sometimes included in the market object.
+ * 
+ * @param {*} market An object representing a Odds API market.
+ * @returns A market object without zero handicap outcomes.
+ */
 const removeZeroHandicaps = (market) => {
     if (!market || !Array.isArray(market.outcomes)){
         throw new Error("Invalid market object.");
@@ -188,22 +236,33 @@ exports.createPlayerPropsProfile = functions.pubsub.schedule('2 5 * * *')
   .onRun(async (context) => {
     try {
       const gameDays = await admin.firestore().collection('playerProps').get();
+
       const promises = [];
       for (const dayDoc of gameDays.docs) {
         try {
           const gameId = dayDoc.id;
-          const gameStartTime = await getDateByGameID(gameId);
+          const gameStartTime = await getTimestampByGameID(gameId);
           const market = await retrieveSingleMarket(gameId);
           for (const outcome of market.outcomes) {
             const playerName = getPlayerName(outcome);
             const handicap = getHandicap(outcome);
+            const playerDoc = await findPlayerByName(playerName);
+
+            if (!playerDoc) {
+                console.error(`Player not found: ${playerName}`);
+                // Handle the case when player is not found
+                return;
+            }
+
             const profile = {
               playerName: playerName,
               marketKey: market.market_key,
               handicap: handicap,
               gameId: gameId,
               startTime: gameStartTime,
+              playerId: playerDoc.data.player.id
             }
+    
             const docId = `${gameId}_${playerName}_${market.market_key}`;
             promises.push(admin.firestore().collection('futurePlayerPropProfiles').doc(docId).set(profile));
         }
@@ -255,8 +314,13 @@ exports.createPlayerPropsProfile = functions.pubsub.schedule('2 5 * * *')
     const [year, month, day] = dateString.split("-");
     return `${day}/${month}/${year}`;
   }
-
-  const getDateByGameID = async (gameId) => {
+/**
+ * Gets the starting timestamp of a game.
+ * 
+ * @param {*} gameId An Odds API game ID.
+ * @returns The starting timestamp of the game or null if the game doesn't exist.
+ */
+  const getTimestampByGameID = async (gameId) => {
     try{
         const futureNflGamesCollection = admin.firestore().collection('futureNflGameDays');
         const snapshot = await futureNflGamesCollection.get();
@@ -269,8 +333,8 @@ exports.createPlayerPropsProfile = functions.pubsub.schedule('2 5 * * *')
             }
         }
         return null;
-      } catch (e){
-        throw new Error ("Failed to load documents for game: " + gameId);
+      } catch (e) {
+        throw new Error ("Failed to load documents for game: " + gameId + "Error: " + e);
       }
   }
 
@@ -344,7 +408,7 @@ exports.createCompositeNFLGames = functions.pubsub.schedule('6 5 * * 2')
     }
 });
 
-exports.getAllTeams = functions.pubsub.schedule('6 5 1 * *') //Runs once a month
+exports.getAllTeams = functions.pubsub.schedule('5 5 1 * *') //Runs once a month
 .onRun(async(context)=> {
     const promises = [];
     const teamIDs = [4412, 4413, 4414, 4415, 4416, 4417, 4418, 4419, 4420, 4421, 4422, 4423, 4424, 
@@ -371,7 +435,8 @@ exports.getAllTeams = functions.pubsub.schedule('6 5 1 * *') //Runs once a month
     }
 });
 
-exports.getAllPlayers = functions.pubsub.schedule('6 5 1 * *') //Runs once a month
+
+exports.getAllPlayers = functions.pubsub.schedule('10 5 1 * *') //Executes once a month.
 .onRun(async(context)=> {
     const promises = [];
     const teamIDs = [4412, 4413, 4414, 4415, 4416, 4417, 4418, 4419, 4420, 4421, 4422, 4423, 4424, 
@@ -400,6 +465,32 @@ exports.getAllPlayers = functions.pubsub.schedule('6 5 1 * *') //Runs once a mon
         }
 });
 
+
+/**
+ * Delays for the specified amount of time.
+ * @param {*} ms The amount of milliseconds to delay.
+ * @returns A promise that resolves after the delay has elapsed.
+ */
 function delay(ms){
     return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * Finds the player document given the player's name.
+ * @param {*} playerName A space separated name on an existing NFL roster.
+ * @returns The player's document or null if the player is not found.
+ */
+const findPlayerByName = async (playerName) => {
+    const playersRef = admin.firestore().collection('nflPlayers');
+    const snapshot = await playersRef.get();
+
+    let foundPlayer = null;
+
+    snapshot.forEach(doc => {
+        const player = doc.data();
+        if (player.player && player.player.name == playerName){
+            foundPlayer = {id: doc.id, data: doc.data()};
+        }
+    });
+    return foundPlayer;
 }
