@@ -1,6 +1,14 @@
 import { FIRESTORE_DB } from "../config/firebaseConfig";
-import { doc, getDoc, query, where, collection, getDocs, setDoc, Timestamp } from 'firebase/firestore';
+import { doc, getDoc, query, where, collection, getDocs, setDoc, Timestamp, deleteDoc } from 'firebase/firestore';
 import { getUsernameFromUID } from "./dataService";
+
+/**
+ * Sends a friend request from 'fromUID' to 'toUID'.
+ * 
+ * @param {*} fromUID The user id for the logged in user who is sending the request.
+ * @param {*} toUID The user id for the user receiving the request.
+ * @param {*} username The username of the user sending the request.
+ */
 export const sendFriendRequest = async (fromUID, toUID, username) => {
     const friendRequestRef = doc(FIRESTORE_DB, 'users', toUID, 'friendRequests', fromUID);
     try{
@@ -12,7 +20,7 @@ export const sendFriendRequest = async (fromUID, toUID, username) => {
         });
         console.log("Friend request sent.");
     }catch(err){
-        console.log("Friend request failed.");
+        throw new Error("Failed to send friend request: "+ err);
     }
 }
 export const acceptFriendRequest = async (currentUid, requestFromUid) => {
@@ -45,8 +53,15 @@ export const acceptFriendRequest = async (currentUid, requestFromUid) => {
 export const rejectFriendRequest = (fromUID, toUID) => {
     
 }
-export const removeFriend = (uid, friendUID) => {
-    
+export const removeFriend = async (uid, friendUID) => {
+    try{
+        const friendRef = doc(FIRESTORE_DB, 'users', uid, 'friends', friendUID);
+        const otherUserFriendRef = doc(FIRESTORE_DB, 'users', friendUID, 'friends', uid);
+        await deleteDoc(friendRef);
+        await deleteDoc(otherUserFriendRef);
+    } catch (error){
+        throw new Error("Failed to remove friend: " + error);
+    }
 }
 
 export const getFriendRequests = async (uid) => {

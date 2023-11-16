@@ -32,7 +32,7 @@ const Friends = ({route}) => {
   }, []);
 
   const getCurrUser = async () => {
-    return await AsyncStorage.getItem('UserUID', uid);
+    return await AsyncStorage.getItem('userToken', uid);
   }
 
   const handleSearch = (query) => {

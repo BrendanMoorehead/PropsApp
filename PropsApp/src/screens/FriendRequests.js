@@ -13,7 +13,7 @@ const FriendRequests = () => {
       try{
         
         setIsLoading(true);
-        const uid = await AsyncStorage.getItem("UserUID");
+        const uid = await AsyncStorage.getItem("userToken");
         const req = await getFriendRequests(uid);
         setActiveUID(uid);
         setRequests(req);

@@ -61,9 +61,6 @@ const FriendSearch = ({route}) => {
     return user.uid !== activeUser && id.includes(query);
   }
   const handlePress = async (uid) => {
-    getCurrUser().then(uid => {
-      console.log(uid); // This logs the resolved value of the Promise.
-    });
     sendFriendRequest(activeUser, uid, username);
   }
   const fetchData = async() => {
