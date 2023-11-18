@@ -11,7 +11,14 @@ const {
     convertDateFormat,
     getNextThursday,
     getNextSunday,
-    getNextMonday
+    getNextMonday,
+    getHandicap,
+    getPlayerName,
+    formatMarketKey,
+    retrieveSingleMarket,
+    removeDuplicateOutcomes,
+    removeZeroHandicaps,
+    findPlayerByName
  } = require ("./helperFunctions");
 
  admin.initializeApp();
@@ -75,130 +82,6 @@ exports.getPlayerReceptions = functions.pubsub.schedule('0 5 * * *')
         return null;
     }
 });
-
-/**
- * Gets the O/U handicap for a given outcome.
- * @param {*} outcomeObj An outcome object from a playerProps document.
- * @returns The handicap (O/U number for prop).
- */
-function getHandicap(outcomeObj) {
-    if (typeof outcomeObj !== 'object' || outcomeObj === null){
-        throw new Error("Object is wrong type or undefined.");
-    }
-    // Get the outcome handicap.
-    const handicap = outcomeObj.handicap;
-    if (handicap === null || handicap.length === 0) throw new Error("No outcome description.");
-    return handicap;
-}
-
-/**
- * Gets the player's name for a given outcome.
- * 
- * NOTE: Name extraction is based on the FanDuel markets.
- * 
- * @param {*} outcomeObj An outcome object from a playerProps document.
- * @returns The name of the player for the given outcome.
- */
-function getPlayerName(outcomeObj){
-    if (typeof outcomeObj !== 'object' || outcomeObj === null){
-        throw new Error("Object is wrong type or undefined.");
-    }
-    // Get the outcome description.
-    const desc = outcomeObj.description;
-    if (desc === null || desc.length === 0) throw new Error("No outcome description.");
-
-    // Extract the player name from the outcome description.
-    const playerName = desc.split(' -')[0];
-    console.log(outcomeObj);
-    if (playerName === null || playerName.length === 0) throw new Error("Player name extraction failed.");
-
-    return playerName;
-}
-/**
- * Removes underscores from a market key to make it more readable.
- * 
- * @param {*} marketKey An underscore delimted string describing the prop market.
- * @returns The formatted market key.
- */
-async function formatMarketKey(marketKey) {
-    if (typeof marketKey !== 'string' || marketKey === null){
-        throw new Error("Market key is not a string or undefined.");
-    }
-    //Removes underscores and capitalizes the first letter of each word.
-    return marketKey.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
-}
-
-/**
- * Gets a market for a given game.
- * 
- * @param {*} gameID A game ID from the Odds API.
- * @returns A document of the market for a given game.
- */
-const retrieveSingleMarket = async (gameID, bookie) => {
-    if (typeof gameID !== 'string' || gameID.trim() === ''){
-        throw new Error("Invalid or nonexistent game ID provided.");
-    }
-    
-    try{
-        const docRef = admin.firestore().collection('playerProps').doc(gameID);
-        const docSnap = await docRef.get();
-
-        if (!docSnap.exists) throw new Error("Document not found for gameID: " + gameID);
-
-        const data = docSnap.data();
-
-        if (!Array.isArray(data.sportsbooks) || data.sportsbooks.length === 0) { 
-            throw new Error("No sportsbooks found for gameID: " + gameID);
-        }
-        if (data.sportsbooks[0].bookie_key != bookie) throw new Error("Invalid bookie.");
-        return removeDuplicateOutcomes(removeZeroHandicaps(data.sportsbooks[0].market)) || null;
-    } catch (e){
-        throw new Error ("Failed to retrieve document for gameID: " + gameID + e);
-    }
-}
-
-/**
- * Removes duplicate outcomes from a given market.
- * 
- * @param {*} market An object representing a Odds API market.
- * @returns A market object without the duplicate outcomes.
- */
-const removeDuplicateOutcomes = (market) => {
-    if (!market || !Array.isArray(market.outcomes)){
-        throw new Error("Invalid market object.");
-    }
-    const uniqueOutcomes = [];
-    const descriptions = new Set();
-    for (const outcome of market.outcomes){
-        if (!descriptions.has(outcome.description)){
-            descriptions.add(outcome.description);
-            uniqueOutcomes.push(outcome);
-        }
-    }
-    return {...market, outcomes: uniqueOutcomes};
-}
-
-/**
- * Removes outcomes with a 0 handicap (O/U line).
- * This is needed as alternate betting lines (higher or lower) are sometimes included in the market object.
- * 
- * @param {*} market An object representing a Odds API market.
- * @returns A market object without zero handicap outcomes.
- */
-const removeZeroHandicaps = (market) => {
-    if (!market || !Array.isArray(market.outcomes)){
-        throw new Error("Invalid market object.");
-    }
-    const nonZeroHandicaps = [];
-    const handicaps = new Set();
-    for (const outcome of market.outcomes){
-        if (Number(outcome.handicap) !== 0){
-            handicaps.add(outcome.handicap);
-            nonZeroHandicaps.push(outcome);
-        }
-    }
-    return {...market, handicaps: nonZeroHandicaps};
-}
 
 exports.createPlayerPropsProfile = functions.pubsub.schedule('2 5 * * *')
   .timeZone('America/New_York')
@@ -426,26 +309,6 @@ exports.getAllPlayers = functions.pubsub.schedule('10 5 1 * *') //Executes once 
             console.error("Failed to get NFL players");
         }
 });
-
-/**
- * Finds the player document given the player's name.
- * @param {*} playerName A space separated name on an existing NFL roster.
- * @returns The player's document or null if the player is not found.
- */
-const findPlayerByName = async (playerName) => {
-    const playersRef = admin.firestore().collection('nflPlayers');
-    const snapshot = await playersRef.get();
-
-    let foundPlayer = null;
-
-    snapshot.forEach(doc => {
-        const player = doc.data();
-        if (player.player && player.player.name == playerName){
-            foundPlayer = {id: doc.id, data: doc.data()};
-        }
-    });
-    return foundPlayer;
-}
 
 
 
