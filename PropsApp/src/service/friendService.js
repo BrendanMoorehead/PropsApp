@@ -23,6 +23,13 @@ export const sendFriendRequest = async (fromUID, toUID, username) => {
         throw new Error("Failed to send friend request: "+ err);
     }
 }
+
+/**
+ * Accepts a friend request and adds both users to eachother's friends list.
+ * 
+ * @param {*} currentUid The user ID of the active user.
+ * @param {*} requestFromUid The user ID of the user who sent the request.
+ */
 export const acceptFriendRequest = async (currentUid, requestFromUid) => {
     const friendRef = doc(FIRESTORE_DB, 'users', currentUid, 'friends', requestFromUid);
     const inverseFriendRef = doc(FIRESTORE_DB, 'users', requestFromUid, 'friends', currentUid);
@@ -50,8 +57,20 @@ export const acceptFriendRequest = async (currentUid, requestFromUid) => {
         console.error("Error accepting friend request.");
     }
 }
-export const rejectFriendRequest = (fromUID, toUID) => {
-    
+
+/**
+ * Rejects the friend request and removes it from the database.
+ * 
+ * @param {*} toUID The currently logged in user who received the request.
+ * @param {*} fromUID The id of the user who sent the request.
+ */
+export const rejectFriendRequest = async (toUID, fromUID) => {
+    try{
+        const friendRequestRef = doc(FIRESTORE_DB, 'users', toUID, 'friendRequests', fromUID);
+        await deleteDoc(friendRequestRef);
+    } catch(error){
+        throw new Error("Failed to delete friend request: " + error);
+    }
 }
 export const removeFriend = async (uid, friendUID) => {
     try{
@@ -64,6 +83,12 @@ export const removeFriend = async (uid, friendUID) => {
     }
 }
 
+/**
+ * Gets a list of requests for the logged in user.
+ * 
+ * @param {*} uid The id of the user currently logged in.
+ * @returns An array of friend request documents.
+ */
 export const getFriendRequests = async (uid) => {
     try{
     const friendRequestRef = collection(FIRESTORE_DB, 'users', uid, 'friendRequests');
@@ -83,6 +108,12 @@ export const getFriendRequests = async (uid) => {
     }
 }
 
+/**
+ * Gets the list of friends for the current user.
+ * 
+ * @param {*} uid The id of the currently logged in user.
+ * @returns An array of friends documents.
+ */
 export const getFriendList = async(uid) => {
     try{
         const friendsRef = collection(FIRESTORE_DB, 'users', uid, 'friends');

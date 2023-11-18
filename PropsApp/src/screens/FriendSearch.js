@@ -56,9 +56,9 @@ const FriendSearch = ({route}) => {
       throw new Error("Search query failed: " + error);
     }
   }
-  const contains = (user, query, activeUser) => {
+  const contains = (user, query) => {
     const id = String(user.id).toLowerCase();
-    return user.uid !== activeUser && id.includes(query);
+    return id !== username.toLowerCase() && id.includes(query);
   }
   const handlePress = async (uid) => {
     sendFriendRequest(activeUser, uid, username);

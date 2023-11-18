@@ -2,6 +2,17 @@
  const functions = require('firebase-functions');
  const admin = require('firebase-admin');
  const axios = require('axios');
+const { 
+    isLive, 
+    isFuture, 
+    checkGameState, 
+    delay, 
+    getTimestampByGameID, 
+    convertDateFormat,
+    getNextThursday,
+    getNextSunday,
+    getNextMonday
+ } = require ("./helperFunctions");
 
  admin.initializeApp();
  
@@ -64,51 +75,6 @@ exports.getPlayerReceptions = functions.pubsub.schedule('0 5 * * *')
         return null;
     }
 });
- 
-/**
- * Gets the date of upcoming Sunday.
- * 
- * @returns the date in YYYY-MM-DD format.
- */
-function getNextSunday(){
-    const now = new Date();
-    const dayOfWeek = now.getDay();
-    // Sunday in number format is 0.
-    const daysUntilSunday = (7 - dayOfWeek) % 7;
-    const sunday = new Date(now);
-    sunday.setDate(now.getDate() + daysUntilSunday);
-    return sunday.toISOString().split('T')[0];
-}
-
-/**
- * Gets the date of upcoming Monday.
- * 
- * @returns the date in YYYY-MM-DD format.
- */
-function getNextMonday(){
-    const now = new Date();
-    const dayOfWeek = now.getDay();
-    // Monday in number format is 1.
-    const daysUntilMonday = (1 + 7 - dayOfWeek) % 7;
-    const monday = new Date(now);
-    monday.setDate(now.getDate() + daysUntilMonday);
-    return monday.toISOString().split('T')[0];
-}
-
-/**
- * Gets the date of upcoming Thursday.
- * 
- * @returns the date in YYYY-MM-DD format.
- */
-function getNextThursday(){
-    const now = new Date();
-    const dayOfWeek = now.getDay();
-    // Thursday in number format is 4.
-    const daysUntilThursday = (4 + 7 - dayOfWeek) % 7;
-    const thursday = new Date(now);
-    thursday.setDate(now.getDate() + daysUntilThursday);
-    return thursday.toISOString().split('T')[0];
-}
 
 /**
  * Gets the O/U handicap for a given outcome.
@@ -143,6 +109,7 @@ function getPlayerName(outcomeObj){
 
     // Extract the player name from the outcome description.
     const playerName = desc.split(' -')[0];
+    console.log(outcomeObj);
     if (playerName === null || playerName.length === 0) throw new Error("Player name extraction failed.");
 
     return playerName;
@@ -167,10 +134,11 @@ async function formatMarketKey(marketKey) {
  * @param {*} gameID A game ID from the Odds API.
  * @returns A document of the market for a given game.
  */
-const retrieveSingleMarket = async (gameID) => {
+const retrieveSingleMarket = async (gameID, bookie) => {
     if (typeof gameID !== 'string' || gameID.trim() === ''){
         throw new Error("Invalid or nonexistent game ID provided.");
     }
+    
     try{
         const docRef = admin.firestore().collection('playerProps').doc(gameID);
         const docSnap = await docRef.get();
@@ -182,6 +150,7 @@ const retrieveSingleMarket = async (gameID) => {
         if (!Array.isArray(data.sportsbooks) || data.sportsbooks.length === 0) { 
             throw new Error("No sportsbooks found for gameID: " + gameID);
         }
+        if (data.sportsbooks[0].bookie_key != bookie) throw new Error("Invalid bookie.");
         return removeDuplicateOutcomes(removeZeroHandicaps(data.sportsbooks[0].market)) || null;
     } catch (e){
         throw new Error ("Failed to retrieve document for gameID: " + gameID + e);
@@ -242,30 +211,49 @@ exports.createPlayerPropsProfile = functions.pubsub.schedule('2 5 * * *')
         try {
           const gameId = dayDoc.id;
           const gameStartTime = await getTimestampByGameID(gameId);
-          const market = await retrieveSingleMarket(gameId);
-          for (const outcome of market.outcomes) {
-            const playerName = getPlayerName(outcome);
-            const handicap = getHandicap(outcome);
-            const playerDoc = await findPlayerByName(playerName);
-
-            if (!playerDoc) {
-                console.error(`Player not found: ${playerName}`);
-                // Handle the case when player is not found
-                return;
+          const matchedGameSnapshot = await admin.firestore().collection('NFLGames')
+                .where('game_id', '==', gameId)
+                .limit(1)
+                .get();
+                console.log(matchedGameSnapshot.docs[0]);
+            if (!matchedGameSnapshot.empty) {
+                // If a match is found, create a new document in the NFLGames collection
+                const matchedGame = matchedGameSnapshot.docs[0];
+                console.log("TEST" + JSON.stringify(matchedGame.data().apiGameId));
+                try {
+                    const market = await retrieveSingleMarket(gameId, 'fanduel');
+                    for (const outcome of market.outcomes) {
+                        const playerName = getPlayerName(outcome);
+                        const handicap = getHandicap(outcome);
+                        const playerDoc = await findPlayerByName(playerName);
+            
+                        if (!playerDoc) {
+                            console.error(`Player not found: ${playerName}`);
+                            // Handle the case when player is not found
+                            continue;
+                        }
+            
+                        const profile = {
+                          playerName: playerName,
+                          marketKey: market.market_key,
+                          handicap: handicap,
+                          gameId: gameId,
+                          startTime: gameStartTime,
+                          playerId: playerDoc.data.player.id,
+                          nflApiGameId: JSON.stringify(matchedGame.data().apiGameId)
+                        }
+                
+                        const docId = `${gameId}_${playerName}_${market.market_key}`;
+                        promises.push(admin.firestore().collection('futurePlayerPropProfiles').doc(docId).set(profile));
+                    }
+                } catch (error) {
+                    console.error("Error retrieving market for game ID " + gameId + ": ", error);
+                    // Continue to the next dayDoc if retrieveSingleMarket fails
+                    continue;
+                }
             }
 
-            const profile = {
-              playerName: playerName,
-              marketKey: market.market_key,
-              handicap: handicap,
-              gameId: gameId,
-              startTime: gameStartTime,
-              playerId: playerDoc.data.player.id
-            }
-    
-            const docId = `${gameId}_${playerName}_${market.market_key}`;
-            promises.push(admin.firestore().collection('futurePlayerPropProfiles').doc(docId).set(profile));
-        }
+          
         } catch (error) {
           console.error("Couldn't create profiles for game: " + dayDoc.id, error);
           return;
@@ -301,7 +289,7 @@ exports.createPlayerPropsProfile = functions.pubsub.schedule('2 5 * * *')
             for (const game of nflGames){
                 uniqueGameIds[game.id] = true;
                 const gameRef = admin.firestore().collection('NFLapiGames').doc(game.id.toString());
-                await promises.push(gameRef.set(game));
+                promises.push(gameRef.set(game));
             }
         }
         await Promise.all(promises);
@@ -310,39 +298,12 @@ exports.createPlayerPropsProfile = functions.pubsub.schedule('2 5 * * *')
     }
   });
 
-  const convertDateFormat = (dateString) => {
-    const [year, month, day] = dateString.split("-");
-    return `${day}/${month}/${year}`;
-  }
-/**
- * Gets the starting timestamp of a game.
- * 
- * @param {*} gameId An Odds API game ID.
- * @returns The starting timestamp of the game or null if the game doesn't exist.
- */
-  const getTimestampByGameID = async (gameId) => {
-    try{
-        const futureNflGamesCollection = admin.firestore().collection('futureNflGameDays');
-        const snapshot = await futureNflGamesCollection.get();
-
-        for (const doc of snapshot.docs){
-            const games = doc.data().games;
-            const game = games.find(g => g.game_id === gameId);
-            if (game) {
-                return game.start_timestamp;
-            }
-        }
-        return null;
-      } catch (e) {
-        throw new Error ("Failed to load documents for game: " + gameId + "Error: " + e);
-      }
-  }
 
   exports.disablePastProps = functions.pubsub.schedule('every 20 minutes').onRun(async (context) => {
       const now = new Date();
       const propsCollection = admin.firestore().collection('futurePlayerPropProfiles');
 
-      const querySnapshot = await propsCollection.where('enabled', '==', true).get();
+    
 
       if (querySnapshot.empty){
           console.log("No props found.");
@@ -367,7 +328,8 @@ exports.createPlayerPropsProfile = functions.pubsub.schedule('2 5 * * *')
 
   exports.removePastGames = functions.pubsub.schedule('59 23 * * 0,1,4')
   .onRun(async(context)=> {
-    
+      const returnVal = await checkGameState('1ABh4KMWfpGomoif2l9z');
+    console.log(returnVal);
   });
 
 exports.createCompositeNFLGames = functions.pubsub.schedule('6 5 * * 2')
@@ -465,16 +427,6 @@ exports.getAllPlayers = functions.pubsub.schedule('10 5 1 * *') //Executes once 
         }
 });
 
-
-/**
- * Delays for the specified amount of time.
- * @param {*} ms The amount of milliseconds to delay.
- * @returns A promise that resolves after the delay has elapsed.
- */
-function delay(ms){
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 /**
  * Finds the player document given the player's name.
  * @param {*} playerName A space separated name on an existing NFL roster.
@@ -494,4 +446,8 @@ const findPlayerByName = async (playerName) => {
     });
     return foundPlayer;
 }
+
+
+
+
 

@@ -1,7 +1,7 @@
 import { View, Text, SafeAreaView, FlatList, ActivityIndicator, StyleSheet, Button } from 'react-native'
 import {useState, useEffect} from 'react'
 import React from 'react'
-import { getFriendRequests, acceptFriendRequest } from '../service/friendService'
+import { getFriendRequests, acceptFriendRequest, rejectFriendRequest } from '../service/friendService'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
 const FriendRequests = () => {
@@ -36,6 +36,17 @@ const FriendRequests = () => {
       setIsLoading(false);
     }
   }
+  const handleReject = async (currUID, requestUID) => {
+    try{
+      await rejectFriendRequest(currUID, requestUID);
+      const updatedReq = await getFriendRequests(activeUID);
+      setRequests(updatedReq);
+    }catch(error){
+      console.error("Failed to reject friend request: " + error);
+    }finally{
+      setIsLoading(false);
+    }
+  }
 
   if(isLoading){
     return (
@@ -53,7 +64,7 @@ const FriendRequests = () => {
           <View style={styles.itemContainer}>
             <Text style={styles.textName}>{item.data.username}</Text>
             <Button title="Accept" onPress={() => handleAccept(activeUID, item.id)}/>
-            <Button title="Reject" onPress={() => handlePress(item.data.uid)}/>
+            <Button title="Reject" onPress={() => handleReject(activeUID, item.id)}/>
           </View>
         )}
       ></FlatList>
