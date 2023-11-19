@@ -1,14 +1,7 @@
 
  const admin = require('firebase-admin');
-/**
- * Takes in a game ID and checks if that game is live or not.
- * 
- * @param {*} gameID an NFLOddsAPI game ID.
- */
- const isLive = (gameID) => {
-    //Calls GET LiveMatches from the football API and checks against game ids.
-    // NEED A LIVE GAME TO COMPLETE
-}
+ const functions = require('firebase-functions');
+ const axios = require('axios');
 
 /**
  * Checks if a given date string is in the future.
@@ -19,7 +12,6 @@
  const isFuture = (dateString) => {
     const inputDate = new Date(dateString);
     const currentDate = new Date();
-    console.log("Input:" )
     return inputDate > currentDate;
 }
 
@@ -32,13 +24,45 @@
     if (typeof gameID !== 'string' || gameID.trim() === ''){
         throw new Error("Invalid or nonexistent game ID provided.");
     }
+    try{
     const matchedGameSnapshot = admin.firestore().collection('NFLGames').doc(gameID);
     gameDoc = await matchedGameSnapshot.get();
     const game = gameDoc.data();
     console.log(game);
     if (isFuture(game.start_timestamp)) return "future";
-    else if (1) return "live"; //TODO: check live.
+    else if (checkIfGameIsLive(gameID)) return "live"; 
     return "complete";
+    }catch(error){
+        throw new Error("Game document not found: " + error);
+    }
+}
+
+const checkIfGameIsLive = async (gameID) => {
+    const liveGames = await getLiveGames();
+    console.log("checkifgameislive");
+    if (liveGames.length > 0){
+        for (game in liveGames) {
+            console.log(game);
+            if (game.id == gameID) return true;
+        }
+    }
+    else return false;
+}
+
+const getLiveGames = async () => {
+    const options = {
+        method: 'GET',
+        url: `https://americanfootballapi.p.rapidapi.com/api/american-football/matches/live`,
+        headers: {
+        'X-RapidAPI-Key': functions.config().nfl_api.api_key,
+        'X-RapidAPI-Host': 'americanfootballapi.p.rapidapi.com'
+    }};
+    const response = await axios.get(`https://americanfootballapi.p.rapidapi.com/api/american-football/matches/live`, 
+    { headers: options.headers });
+    console.log("LIVEGAMESCALLED");
+    const matchesArr = response.data;
+    
+    return matchesArr;
 }
 
 /**
@@ -274,10 +298,39 @@ const removeZeroHandicaps = (market) => {
     return foundPlayer;
 }
 
+//Needs to move the prop over
+//Needs to error check if the response is null (maybe only runs if game has passed)
+const checkPropHit = async (propProfileDoc) => {
+    const prop = propProfileDoc.data();
+    const playerID = prop.playerId;
+    const gameID = prop.nflApiGameId;
+    const line = prop.handicap;
+    const market = prop.market_key;
+
+    const options = {
+        method: 'GET',
+        url: `https://americanfootballapi.p.rapidapi.com/api/american-football/matches/${gameID}/player/${playerID}/statistics`,
+        headers: {
+        'X-RapidAPI-Key': functions.config().nfl_api.api_key,
+        'X-RapidAPI-Host': 'americanfootballapi.p.rapidapi.com'
+    }};
+    const response = await axios.get(`https://americanfootballapi.p.rapidapi.com/api/american-football/matches/${gameID}/player/${playerID}/statistics`, 
+    { headers: options.headers });
+    //For receptions
+    if (market == 'player_receptions_over_under'){
+        const receptions = response.data.statistics.receivingReceptions;
+        if (line > receptions){
+            await propProfileDoc.update({outcome: 'over'});
+        }
+        else {
+            await propProfileDoc.update({outcome: 'under'});
+        }
+    }
+}
+
 
 
 module.exports = {
-    isLive, 
     isFuture, 
     checkGameState, 
     delay, 
@@ -292,5 +345,6 @@ module.exports = {
     retrieveSingleMarket,
     removeDuplicateOutcomes,
     removeZeroHandicaps,
-    findPlayerByName
+    findPlayerByName, 
+    checkPropHit
 }

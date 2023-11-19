@@ -1,0 +1,1279 @@
+{
+    "events": [
+      {
+        "tournament": {
+          "name": "NFL",
+          "slug": "nfl",
+          "category": {
+            "name": "USA",
+            "slug": "usa",
+            "sport": {
+              "name": "American football",
+              "slug": "american-football",
+              "id": 63
+            },
+            "id": 1370,
+            "flag": "usa",
+            "alpha2": "US"
+          },
+          "uniqueTournament": {
+            "name": "NFL",
+            "slug": "nfl",
+            "primaryColorHex": "#1e3c71",
+            "secondaryColorHex": "#db2526",
+            "category": {
+              "name": "USA",
+              "slug": "usa",
+              "sport": {
+                "name": "American football",
+                "slug": "american-football",
+                "id": 63
+              },
+              "id": 1370,
+              "flag": "usa",
+              "alpha2": "US"
+            },
+            "userCount": 48697,
+            "id": 9464,
+            "country": {},
+            "hasEventPlayerStatistics": false,
+            "hasBoxScore": true,
+            "crowdsourcingEnabled": false,
+            "hasPerformanceGraphFeature": false,
+            "displayInverseHomeAwayTeams": true,
+            "hasDownDistance": true
+          },
+          "priority": 5,
+          "id": 108947
+        },
+        "roundInfo": {
+          "round": 11
+        },
+        "customId": "RMbspNb",
+        "status": {
+          "code": 13,
+          "description": "1st quarter",
+          "type": "inprogress"
+        },
+        "homeTeam": {
+          "name": "Carolina Panthers",
+          "slug": "carolina-panthers",
+          "shortName": "Panthers",
+          "gender": "M",
+          "sport": {
+            "name": "American football",
+            "slug": "american-football",
+            "id": 63
+          },
+          "userCount": 2728,
+          "nameCode": "CAR",
+          "disabled": false,
+          "national": false,
+          "type": 0,
+          "id": 4415,
+          "country": {
+            "alpha2": "US",
+            "name": "USA"
+          },
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#3a84c5",
+            "secondary": "#07141e",
+            "text": "#07141e"
+          }
+        },
+        "awayTeam": {
+          "name": "Dallas Cowboys",
+          "slug": "dallas-cowboys",
+          "shortName": "Cowboys",
+          "gender": "M",
+          "sport": {
+            "name": "American football",
+            "slug": "american-football",
+            "id": 63
+          },
+          "userCount": 12163,
+          "nameCode": "DAL",
+          "disabled": false,
+          "national": false,
+          "type": 0,
+          "id": 4392,
+          "country": {
+            "alpha2": "US",
+            "name": "USA"
+          },
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#212a52",
+            "secondary": "#c3c2c7",
+            "text": "#c3c2c7"
+          }
+        },
+        "homeScore": {
+          "current": 0,
+          "display": 0,
+          "period1": 0
+        },
+        "awayScore": {
+          "current": 7,
+          "display": 7,
+          "period1": 7
+        },
+        "time": {
+          "played": 803,
+          "periodLength": 900,
+          "overtimeLength": 600,
+          "totalPeriodCount": 4,
+          "currentPeriodStartTimestamp": 1700416966
+        },
+        "changes": {
+          "changes": [
+            "time.played"
+          ],
+          "changeTimestamp": 1700418520
+        },
+        "hasGlobalHighlights": true,
+        "hasEventPlayerStatistics": true,
+        "crowdsourcingDataDisplayEnabled": false,
+        "id": 11275367,
+        "yardDistance": {
+          "currentYardsToFirstDown": null,
+          "currentDown": null,
+          "currentYardline": null,
+          "currentPossession": null,
+          "isGoalPossession": false,
+          "currentTeamHalf": null
+        },
+        "startTimestamp": 1700416800,
+        "slug": "carolina-panthers-dallas-cowboys",
+        "periods": {
+          "current": "Score",
+          "period1": "1st quarter",
+          "period2": "2nd quarter",
+          "period3": "3rd quarter",
+          "period4": "4th quarter",
+          "overtime": "Overtime"
+        },
+        "lastPeriod": "period1",
+        "finalResultOnly": false,
+        "isEditor": false,
+        "crowdsourcingEnabled": false
+      },
+      {
+        "tournament": {
+          "name": "NFL",
+          "slug": "nfl",
+          "category": {
+            "name": "USA",
+            "slug": "usa",
+            "sport": {
+              "name": "American football",
+              "slug": "american-football",
+              "id": 63
+            },
+            "id": 1370,
+            "flag": "usa",
+            "alpha2": "US"
+          },
+          "uniqueTournament": {
+            "name": "NFL",
+            "slug": "nfl",
+            "primaryColorHex": "#1e3c71",
+            "secondaryColorHex": "#db2526",
+            "category": {
+              "name": "USA",
+              "slug": "usa",
+              "sport": {
+                "name": "American football",
+                "slug": "american-football",
+                "id": 63
+              },
+              "id": 1370,
+              "flag": "usa",
+              "alpha2": "US"
+            },
+            "userCount": 48697,
+            "id": 9464,
+            "country": {},
+            "hasEventPlayerStatistics": false,
+            "hasBoxScore": true,
+            "crowdsourcingEnabled": false,
+            "hasPerformanceGraphFeature": false,
+            "displayInverseHomeAwayTeams": true,
+            "hasDownDistance": true
+          },
+          "priority": 5,
+          "id": 108947
+        },
+        "roundInfo": {
+          "round": 11
+        },
+        "customId": "VLbsrNb",
+        "status": {
+          "code": 13,
+          "description": "1st quarter",
+          "type": "inprogress"
+        },
+        "homeTeam": {
+          "name": "Cleveland Browns",
+          "slug": "cleveland-browns",
+          "shortName": "Browns",
+          "gender": "M",
+          "sport": {
+            "name": "American football",
+            "slug": "american-football",
+            "id": 63
+          },
+          "userCount": 3194,
+          "nameCode": "CLE",
+          "disabled": false,
+          "national": false,
+          "type": 0,
+          "id": 4417,
+          "country": {
+            "alpha2": "US",
+            "name": "USA"
+          },
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#38312c",
+            "secondary": "#ff3900",
+            "text": "#ff3900"
+          }
+        },
+        "awayTeam": {
+          "name": "Pittsburgh Steelers",
+          "slug": "pittsburgh-steelers",
+          "shortName": "Steelers",
+          "gender": "M",
+          "sport": {
+            "name": "American football",
+            "slug": "american-football",
+            "id": 63
+          },
+          "userCount": 7914,
+          "nameCode": "PIT",
+          "disabled": false,
+          "national": false,
+          "type": 0,
+          "id": 4345,
+          "country": {
+            "alpha2": "US",
+            "name": "USA"
+          },
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#ffd700",
+            "secondary": "#191310",
+            "text": "#191310"
+          }
+        },
+        "homeScore": {
+          "current": 7,
+          "display": 7,
+          "period1": 7
+        },
+        "awayScore": {
+          "current": 0,
+          "display": 0,
+          "period1": 0
+        },
+        "time": {
+          "played": 625,
+          "periodLength": 900,
+          "overtimeLength": 600,
+          "totalPeriodCount": 4,
+          "currentPeriodStartTimestamp": 1700416928
+        },
+        "changes": {
+          "changes": [
+            "homeScore.period1",
+            "homeScore.current",
+            "homeScore.display",
+            "time.played"
+          ],
+          "changeTimestamp": 1700418401
+        },
+        "hasGlobalHighlights": true,
+        "hasEventPlayerStatistics": true,
+        "crowdsourcingDataDisplayEnabled": false,
+        "id": 11275369,
+        "yardDistance": {
+          "currentYardsToFirstDown": 4,
+          "currentDown": 2,
+          "currentYardline": 31,
+          "currentPossession": 2,
+          "isGoalPossession": false,
+          "currentTeamHalf": 2
+        },
+        "startTimestamp": 1700416800,
+        "slug": "cleveland-browns-pittsburgh-steelers",
+        "periods": {
+          "current": "Score",
+          "period1": "1st quarter",
+          "period2": "2nd quarter",
+          "period3": "3rd quarter",
+          "period4": "4th quarter",
+          "overtime": "Overtime"
+        },
+        "lastPeriod": "period1",
+        "finalResultOnly": false,
+        "isEditor": false,
+        "crowdsourcingEnabled": false
+      },
+      {
+        "tournament": {
+          "name": "NFL",
+          "slug": "nfl",
+          "category": {
+            "name": "USA",
+            "slug": "usa",
+            "sport": {
+              "name": "American football",
+              "slug": "american-football",
+              "id": 63
+            },
+            "id": 1370,
+            "flag": "usa",
+            "alpha2": "US"
+          },
+          "uniqueTournament": {
+            "name": "NFL",
+            "slug": "nfl",
+            "primaryColorHex": "#1e3c71",
+            "secondaryColorHex": "#db2526",
+            "category": {
+              "name": "USA",
+              "slug": "usa",
+              "sport": {
+                "name": "American football",
+                "slug": "american-football",
+                "id": 63
+              },
+              "id": 1370,
+              "flag": "usa",
+              "alpha2": "US"
+            },
+            "userCount": 48697,
+            "id": 9464,
+            "country": {},
+            "hasEventPlayerStatistics": false,
+            "hasBoxScore": true,
+            "crowdsourcingEnabled": false,
+            "hasPerformanceGraphFeature": false,
+            "displayInverseHomeAwayTeams": true,
+            "hasDownDistance": true
+          },
+          "priority": 5,
+          "id": 108947
+        },
+        "roundInfo": {
+          "round": 11
+        },
+        "customId": "QMbsuNb",
+        "status": {
+          "code": 13,
+          "description": "1st quarter",
+          "type": "inprogress"
+        },
+        "homeTeam": {
+          "name": "Detroit Lions",
+          "slug": "detroit-lions",
+          "shortName": "Lions",
+          "gender": "M",
+          "sport": {
+            "name": "American football",
+            "slug": "american-football",
+            "id": 63
+          },
+          "userCount": 3100,
+          "nameCode": "DET",
+          "disabled": false,
+          "national": false,
+          "type": 0,
+          "id": 4419,
+          "country": {
+            "alpha2": "US",
+            "name": "USA"
+          },
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#0062ab",
+            "secondary": "#bdbebe",
+            "text": "#bdbebe"
+          }
+        },
+        "awayTeam": {
+          "name": "Chicago Bears",
+          "slug": "chicago-bears",
+          "shortName": "Bears",
+          "gender": "M",
+          "sport": {
+            "name": "American football",
+            "slug": "american-football",
+            "id": 63
+          },
+          "userCount": 4022,
+          "nameCode": "CHI",
+          "disabled": false,
+          "national": false,
+          "type": 0,
+          "id": 4391,
+          "country": {
+            "alpha2": "US",
+            "name": "USA"
+          },
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#0b162a",
+            "secondary": "#c83803",
+            "text": "#c83803"
+          }
+        },
+        "homeScore": {
+          "current": 0,
+          "display": 0,
+          "period1": 0
+        },
+        "awayScore": {
+          "current": 7,
+          "display": 7,
+          "period1": 7
+        },
+        "time": {
+          "played": 771,
+          "periodLength": 900,
+          "overtimeLength": 600,
+          "totalPeriodCount": 4,
+          "currentPeriodStartTimestamp": 1700416867
+        },
+        "changes": {
+          "changes": [
+            "time.played"
+          ],
+          "changeTimestamp": 1700418520
+        },
+        "hasGlobalHighlights": true,
+        "hasEventPlayerStatistics": true,
+        "crowdsourcingDataDisplayEnabled": false,
+        "id": 11275370,
+        "yardDistance": {
+          "currentYardsToFirstDown": 16,
+          "currentDown": 2,
+          "currentYardline": 44,
+          "currentPossession": 2,
+          "isGoalPossession": false,
+          "currentTeamHalf": 1
+        },
+        "startTimestamp": 1700416800,
+        "slug": "detroit-lions-chicago-bears",
+        "periods": {
+          "current": "Score",
+          "period1": "1st quarter",
+          "period2": "2nd quarter",
+          "period3": "3rd quarter",
+          "period4": "4th quarter",
+          "overtime": "Overtime"
+        },
+        "lastPeriod": "period1",
+        "finalResultOnly": false,
+        "isEditor": false,
+        "crowdsourcingEnabled": false
+      },
+      {
+        "tournament": {
+          "name": "NFL",
+          "slug": "nfl",
+          "category": {
+            "name": "USA",
+            "slug": "usa",
+            "sport": {
+              "name": "American football",
+              "slug": "american-football",
+              "id": 63
+            },
+            "id": 1370,
+            "flag": "usa",
+            "alpha2": "US"
+          },
+          "uniqueTournament": {
+            "name": "NFL",
+            "slug": "nfl",
+            "primaryColorHex": "#1e3c71",
+            "secondaryColorHex": "#db2526",
+            "category": {
+              "name": "USA",
+              "slug": "usa",
+              "sport": {
+                "name": "American football",
+                "slug": "american-football",
+                "id": 63
+              },
+              "id": 1370,
+              "flag": "usa",
+              "alpha2": "US"
+            },
+            "userCount": 48697,
+            "id": 9464,
+            "country": {},
+            "hasEventPlayerStatistics": false,
+            "hasBoxScore": true,
+            "crowdsourcingEnabled": false,
+            "hasPerformanceGraphFeature": false,
+            "displayInverseHomeAwayTeams": true,
+            "hasDownDistance": true
+          },
+          "priority": 5,
+          "id": 108947
+        },
+        "roundInfo": {
+          "round": 11
+        },
+        "customId": "vNbsENb",
+        "status": {
+          "code": 13,
+          "description": "1st quarter",
+          "type": "inprogress"
+        },
+        "homeTeam": {
+          "name": "Green Bay Packers",
+          "slug": "green-bay-packers",
+          "shortName": "Packers",
+          "gender": "M",
+          "sport": {
+            "name": "American football",
+            "slug": "american-football",
+            "id": 63
+          },
+          "userCount": 12468,
+          "nameCode": "GB",
+          "disabled": false,
+          "national": false,
+          "type": 0,
+          "id": 4420,
+          "country": {
+            "alpha2": "US",
+            "name": "USA"
+          },
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#203731",
+            "secondary": "#ffb612",
+            "text": "#ffb612"
+          }
+        },
+        "awayTeam": {
+          "name": "Los Angeles Chargers",
+          "slug": "los-angeles-chargers",
+          "shortName": "Chargers",
+          "gender": "M",
+          "sport": {
+            "name": "American football",
+            "slug": "american-football",
+            "id": 63
+          },
+          "userCount": 3330,
+          "nameCode": "LAC",
+          "disabled": false,
+          "national": false,
+          "type": 0,
+          "id": 4429,
+          "country": {
+            "alpha2": "US",
+            "name": "USA"
+          },
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#3289ce",
+            "secondary": "#ffc20e",
+            "text": "#ffc20e"
+          }
+        },
+        "homeScore": {
+          "current": 0,
+          "display": 0,
+          "period1": 0
+        },
+        "awayScore": {
+          "current": 0,
+          "display": 0,
+          "period1": 0
+        },
+        "time": {
+          "played": 726,
+          "periodLength": 900,
+          "overtimeLength": 600,
+          "totalPeriodCount": 4,
+          "currentPeriodStartTimestamp": 1700416955
+        },
+        "changes": {
+          "changes": [
+            "time.played"
+          ],
+          "changeTimestamp": 1700418520
+        },
+        "hasGlobalHighlights": true,
+        "hasEventPlayerStatistics": true,
+        "crowdsourcingDataDisplayEnabled": false,
+        "id": 11275348,
+        "yardDistance": {
+          "currentYardsToFirstDown": null,
+          "currentDown": null,
+          "currentYardline": null,
+          "currentPossession": null,
+          "isGoalPossession": false,
+          "currentTeamHalf": null
+        },
+        "startTimestamp": 1700416800,
+        "slug": "los-angeles-chargers-green-bay-packers",
+        "periods": {
+          "current": "Score",
+          "period1": "1st quarter",
+          "period2": "2nd quarter",
+          "period3": "3rd quarter",
+          "period4": "4th quarter",
+          "overtime": "Overtime"
+        },
+        "lastPeriod": "period1",
+        "finalResultOnly": false,
+        "isEditor": false,
+        "crowdsourcingEnabled": false
+      },
+      {
+        "tournament": {
+          "name": "NFL",
+          "slug": "nfl",
+          "category": {
+            "name": "USA",
+            "slug": "usa",
+            "sport": {
+              "name": "American football",
+              "slug": "american-football",
+              "id": 63
+            },
+            "id": 1370,
+            "flag": "usa",
+            "alpha2": "US"
+          },
+          "uniqueTournament": {
+            "name": "NFL",
+            "slug": "nfl",
+            "primaryColorHex": "#1e3c71",
+            "secondaryColorHex": "#db2526",
+            "category": {
+              "name": "USA",
+              "slug": "usa",
+              "sport": {
+                "name": "American football",
+                "slug": "american-football",
+                "id": 63
+              },
+              "id": 1370,
+              "flag": "usa",
+              "alpha2": "US"
+            },
+            "userCount": 48697,
+            "id": 9464,
+            "country": {},
+            "hasEventPlayerStatistics": false,
+            "hasBoxScore": true,
+            "crowdsourcingEnabled": false,
+            "hasPerformanceGraphFeature": false,
+            "displayInverseHomeAwayTeams": true,
+            "hasDownDistance": true
+          },
+          "priority": 5,
+          "id": 108947
+        },
+        "roundInfo": {
+          "round": 11
+        },
+        "customId": "zLbsmNb",
+        "status": {
+          "code": 13,
+          "description": "1st quarter",
+          "type": "inprogress"
+        },
+        "homeTeam": {
+          "name": "Houston Texans",
+          "slug": "houston-texans",
+          "shortName": "Texans",
+          "gender": "M",
+          "sport": {
+            "name": "American football",
+            "slug": "american-football",
+            "id": 63
+          },
+          "userCount": 2400,
+          "nameCode": "HOU",
+          "disabled": false,
+          "national": false,
+          "type": 0,
+          "id": 4324,
+          "country": {
+            "alpha2": "US",
+            "name": "USA"
+          },
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#01123e",
+            "secondary": "#b01c36",
+            "text": "#b01c36"
+          }
+        },
+        "awayTeam": {
+          "name": "Arizona Cardinals",
+          "slug": "arizona-cardinals",
+          "shortName": "Cardinals",
+          "gender": "M",
+          "sport": {
+            "name": "American football",
+            "slug": "american-football",
+            "id": 63
+          },
+          "userCount": 2921,
+          "nameCode": "ARI",
+          "disabled": false,
+          "national": false,
+          "type": 0,
+          "id": 4412,
+          "country": {
+            "alpha2": "US",
+            "name": "USA"
+          },
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#97233f",
+            "secondary": "#000000",
+            "text": "#000000"
+          }
+        },
+        "homeScore": {
+          "current": 0,
+          "display": 0,
+          "period1": 0
+        },
+        "awayScore": {
+          "current": 7,
+          "display": 7,
+          "period1": 7
+        },
+        "time": {
+          "played": 546,
+          "periodLength": 900,
+          "overtimeLength": 600,
+          "totalPeriodCount": 4,
+          "currentPeriodStartTimestamp": 1700416925
+        },
+        "changes": {
+          "changes": [
+            "time.played"
+          ],
+          "changeTimestamp": 1700418460
+        },
+        "hasGlobalHighlights": true,
+        "hasEventPlayerStatistics": true,
+        "crowdsourcingDataDisplayEnabled": false,
+        "id": 11275349,
+        "yardDistance": {
+          "currentYardsToFirstDown": null,
+          "currentDown": null,
+          "currentYardline": null,
+          "currentPossession": null,
+          "isGoalPossession": false,
+          "currentTeamHalf": null
+        },
+        "startTimestamp": 1700416800,
+        "slug": "arizona-cardinals-houston-texans",
+        "periods": {
+          "current": "Score",
+          "period1": "1st quarter",
+          "period2": "2nd quarter",
+          "period3": "3rd quarter",
+          "period4": "4th quarter",
+          "overtime": "Overtime"
+        },
+        "lastPeriod": "period1",
+        "finalResultOnly": false,
+        "isEditor": false,
+        "crowdsourcingEnabled": false
+      },
+      {
+        "tournament": {
+          "name": "NFL",
+          "slug": "nfl",
+          "category": {
+            "name": "USA",
+            "slug": "usa",
+            "sport": {
+              "name": "American football",
+              "slug": "american-football",
+              "id": 63
+            },
+            "id": 1370,
+            "flag": "usa",
+            "alpha2": "US"
+          },
+          "uniqueTournament": {
+            "name": "NFL",
+            "slug": "nfl",
+            "primaryColorHex": "#1e3c71",
+            "secondaryColorHex": "#db2526",
+            "category": {
+              "name": "USA",
+              "slug": "usa",
+              "sport": {
+                "name": "American football",
+                "slug": "american-football",
+                "id": 63
+              },
+              "id": 1370,
+              "flag": "usa",
+              "alpha2": "US"
+            },
+            "userCount": 48697,
+            "id": 9464,
+            "country": {},
+            "hasEventPlayerStatistics": false,
+            "hasBoxScore": true,
+            "crowdsourcingEnabled": false,
+            "hasPerformanceGraphFeature": false,
+            "displayInverseHomeAwayTeams": true,
+            "hasDownDistance": true
+          },
+          "priority": 5,
+          "id": 108947
+        },
+        "roundInfo": {
+          "round": 11
+        },
+        "customId": "LMbsGNb",
+        "status": {
+          "code": 13,
+          "description": "1st quarter",
+          "type": "inprogress"
+        },
+        "homeTeam": {
+          "name": "Jacksonville Jaguars",
+          "slug": "jacksonville-jaguars",
+          "shortName": "Jaguars",
+          "gender": "M",
+          "sport": {
+            "name": "American football",
+            "slug": "american-football",
+            "id": 63
+          },
+          "userCount": 3084,
+          "nameCode": "JAX",
+          "disabled": false,
+          "national": false,
+          "type": 0,
+          "id": 4386,
+          "country": {
+            "alpha2": "US",
+            "name": "USA"
+          },
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#01839b",
+            "secondary": "#2b2d22",
+            "text": "#2b2d22"
+          }
+        },
+        "awayTeam": {
+          "name": "Tennessee Titans",
+          "slug": "tennessee-titans",
+          "shortName": "Titans",
+          "gender": "M",
+          "sport": {
+            "name": "American football",
+            "slug": "american-football",
+            "id": 63
+          },
+          "userCount": 2488,
+          "nameCode": "TEN",
+          "disabled": false,
+          "national": false,
+          "type": 0,
+          "id": 4431,
+          "country": {
+            "alpha2": "US",
+            "name": "USA"
+          },
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#012c63",
+            "secondary": "#79243e",
+            "text": "#79243e"
+          }
+        },
+        "homeScore": {
+          "current": 7,
+          "display": 7,
+          "period1": 7
+        },
+        "awayScore": {
+          "current": 0,
+          "display": 0,
+          "period1": 0
+        },
+        "time": {
+          "played": 722,
+          "periodLength": 900,
+          "overtimeLength": 600,
+          "totalPeriodCount": 4
+        },
+        "changes": {
+          "changes": [
+            "homeScore.current",
+            "homeScore.display",
+            "time.played"
+          ],
+          "changeTimestamp": 1700418400
+        },
+        "hasGlobalHighlights": true,
+        "hasEventPlayerStatistics": true,
+        "crowdsourcingDataDisplayEnabled": false,
+        "id": 11275347,
+        "yardDistance": {
+          "currentYardsToFirstDown": 0,
+          "currentDown": 0,
+          "currentYardline": 35,
+          "currentPossession": 1,
+          "isGoalPossession": false,
+          "currentTeamHalf": 1
+        },
+        "startTimestamp": 1700416800,
+        "slug": "tennessee-titans-jacksonville-jaguars",
+        "periods": {
+          "current": "Score",
+          "period1": "1st quarter",
+          "period2": "2nd quarter",
+          "period3": "3rd quarter",
+          "period4": "4th quarter",
+          "overtime": "Overtime"
+        },
+        "lastPeriod": "period1",
+        "finalResultOnly": false,
+        "isEditor": false,
+        "crowdsourcingEnabled": false
+      },
+      {
+        "tournament": {
+          "name": "NFL",
+          "slug": "nfl",
+          "category": {
+            "name": "USA",
+            "slug": "usa",
+            "sport": {
+              "name": "American football",
+              "slug": "american-football",
+              "id": 63
+            },
+            "id": 1370,
+            "flag": "usa",
+            "alpha2": "US"
+          },
+          "uniqueTournament": {
+            "name": "NFL",
+            "slug": "nfl",
+            "primaryColorHex": "#1e3c71",
+            "secondaryColorHex": "#db2526",
+            "category": {
+              "name": "USA",
+              "slug": "usa",
+              "sport": {
+                "name": "American football",
+                "slug": "american-football",
+                "id": 63
+              },
+              "id": 1370,
+              "flag": "usa",
+              "alpha2": "US"
+            },
+            "userCount": 48697,
+            "id": 9464,
+            "country": {},
+            "hasEventPlayerStatistics": false,
+            "hasBoxScore": true,
+            "crowdsourcingEnabled": false,
+            "hasPerformanceGraphFeature": false,
+            "displayInverseHomeAwayTeams": true,
+            "hasDownDistance": true
+          },
+          "priority": 5,
+          "id": 108947
+        },
+        "roundInfo": {
+          "round": 11
+        },
+        "customId": "MKbsPMb",
+        "status": {
+          "code": 13,
+          "description": "1st quarter",
+          "type": "inprogress"
+        },
+        "homeTeam": {
+          "name": "Miami Dolphins",
+          "slug": "miami-dolphins",
+          "shortName": "Dolphins",
+          "gender": "M",
+          "sport": {
+            "name": "American football",
+            "slug": "american-football",
+            "id": 63
+          },
+          "userCount": 8197,
+          "nameCode": "MIA",
+          "disabled": false,
+          "national": false,
+          "type": 0,
+          "id": 4287,
+          "country": {
+            "alpha2": "US",
+            "name": "USA"
+          },
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#008e97",
+            "secondary": "#f79b4d",
+            "text": "#f79b4d"
+          }
+        },
+        "awayTeam": {
+          "name": "Las Vegas Raiders",
+          "slug": "las-vegas-raiders",
+          "shortName": "Raiders",
+          "gender": "M",
+          "sport": {
+            "name": "American football",
+            "slug": "american-football",
+            "id": 63
+          },
+          "userCount": 5384,
+          "nameCode": "LV",
+          "disabled": false,
+          "national": false,
+          "type": 0,
+          "id": 4390,
+          "country": {
+            "alpha2": "US",
+            "name": "USA"
+          },
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#909090",
+            "secondary": "#040404",
+            "text": "#040404"
+          }
+        },
+        "homeScore": {
+          "current": 0,
+          "display": 0,
+          "period1": 0
+        },
+        "awayScore": {
+          "current": 3,
+          "display": 3,
+          "period1": 3
+        },
+        "time": {
+          "played": 538,
+          "periodLength": 900,
+          "overtimeLength": 600,
+          "totalPeriodCount": 4,
+          "currentPeriodStartTimestamp": 1700416933
+        },
+        "changes": {
+          "changes": [
+            "time.played"
+          ],
+          "changeTimestamp": 1700418520
+        },
+        "hasGlobalHighlights": true,
+        "hasEventPlayerStatistics": true,
+        "crowdsourcingDataDisplayEnabled": false,
+        "id": 11275351,
+        "yardDistance": {
+          "currentYardsToFirstDown": null,
+          "currentDown": null,
+          "currentYardline": null,
+          "currentPossession": null,
+          "isGoalPossession": false,
+          "currentTeamHalf": null
+        },
+        "startTimestamp": 1700416800,
+        "slug": "las-vegas-raiders-miami-dolphins",
+        "periods": {
+          "current": "Score",
+          "period1": "1st quarter",
+          "period2": "2nd quarter",
+          "period3": "3rd quarter",
+          "period4": "4th quarter",
+          "overtime": "Overtime"
+        },
+        "lastPeriod": "period1",
+        "finalResultOnly": false,
+        "isEditor": false,
+        "crowdsourcingEnabled": false
+      },
+      {
+        "tournament": {
+          "name": "NFL",
+          "slug": "nfl",
+          "category": {
+            "name": "USA",
+            "slug": "usa",
+            "sport": {
+              "name": "American football",
+              "slug": "american-football",
+              "id": 63
+            },
+            "id": 1370,
+            "flag": "usa",
+            "alpha2": "US"
+          },
+          "uniqueTournament": {
+            "name": "NFL",
+            "slug": "nfl",
+            "primaryColorHex": "#1e3c71",
+            "secondaryColorHex": "#db2526",
+            "category": {
+              "name": "USA",
+              "slug": "usa",
+              "sport": {
+                "name": "American football",
+                "slug": "american-football",
+                "id": 63
+              },
+              "id": 1370,
+              "flag": "usa",
+              "alpha2": "US"
+            },
+            "userCount": 48697,
+            "id": 9464,
+            "country": {},
+            "hasEventPlayerStatistics": false,
+            "hasBoxScore": true,
+            "crowdsourcingEnabled": false,
+            "hasPerformanceGraphFeature": false,
+            "displayInverseHomeAwayTeams": true,
+            "hasDownDistance": true
+          },
+          "priority": 5,
+          "id": 108947
+        },
+        "roundInfo": {
+          "round": 11
+        },
+        "customId": "BNbsHNb",
+        "status": {
+          "code": 13,
+          "description": "1st quarter",
+          "type": "inprogress"
+        },
+        "homeTeam": {
+          "name": "Washington Commanders",
+          "slug": "washington-commanders",
+          "shortName": "Commanders",
+          "gender": "M",
+          "sport": {
+            "name": "American football",
+            "slug": "american-football",
+            "id": 63
+          },
+          "userCount": 2456,
+          "nameCode": "WAS",
+          "disabled": false,
+          "national": false,
+          "type": 0,
+          "id": 4432,
+          "country": {
+            "alpha2": "US",
+            "name": "USA"
+          },
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#5a1414",
+            "secondary": "#ffb612",
+            "text": "#ffb612"
+          }
+        },
+        "awayTeam": {
+          "name": "New York Giants",
+          "slug": "new-york-giants",
+          "shortName": "Giants",
+          "gender": "M",
+          "sport": {
+            "name": "American football",
+            "slug": "american-football",
+            "id": 63
+          },
+          "userCount": 6551,
+          "nameCode": "NYG",
+          "disabled": false,
+          "national": false,
+          "type": 0,
+          "id": 4426,
+          "country": {
+            "alpha2": "US",
+            "name": "USA"
+          },
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#0b2265",
+            "secondary": "#a71930",
+            "text": "#a71930"
+          }
+        },
+        "homeScore": {
+          "current": 0,
+          "display": 0,
+          "period1": 0
+        },
+        "awayScore": {
+          "current": 0,
+          "display": 0,
+          "period1": 0
+        },
+        "time": {
+          "played": 491,
+          "periodLength": 900,
+          "overtimeLength": 600,
+          "totalPeriodCount": 4
+        },
+        "changes": {
+          "changes": [
+            "time.played"
+          ],
+          "changeTimestamp": 1700418400
+        },
+        "hasGlobalHighlights": true,
+        "hasEventPlayerStatistics": true,
+        "crowdsourcingDataDisplayEnabled": false,
+        "id": 11275350,
+        "yardDistance": {
+          "currentYardsToFirstDown": null,
+          "currentDown": null,
+          "currentYardline": null,
+          "currentPossession": null,
+          "isGoalPossession": false,
+          "currentTeamHalf": null
+        },
+        "startTimestamp": 1700416800,
+        "slug": "washington-commanders-new-york-giants",
+        "periods": {
+          "current": "Score",
+          "period1": "1st quarter",
+          "period2": "2nd quarter",
+          "period3": "3rd quarter",
+          "period4": "4th quarter",
+          "overtime": "Overtime"
+        },
+        "lastPeriod": "period1",
+        "finalResultOnly": false,
+        "isEditor": false,
+        "crowdsourcingEnabled": false
+      }
+    ]
+  }

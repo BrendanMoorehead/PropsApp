@@ -3,7 +3,6 @@
  const admin = require('firebase-admin');
  const axios = require('axios');
 const { 
-    isLive, 
     isFuture, 
     checkGameState, 
     delay, 
@@ -18,7 +17,8 @@ const {
     retrieveSingleMarket,
     removeDuplicateOutcomes,
     removeZeroHandicaps,
-    findPlayerByName
+    findPlayerByName, 
+    checkPropHit
  } = require ("./helperFunctions");
 
  admin.initializeApp();
@@ -123,7 +123,8 @@ exports.createPlayerPropsProfile = functions.pubsub.schedule('2 5 * * *')
                           gameId: gameId,
                           startTime: gameStartTime,
                           playerId: playerDoc.data.player.id,
-                          nflApiGameId: JSON.stringify(matchedGame.data().apiGameId)
+                          nflApiGameId: JSON.stringify(matchedGame.data().apiGameId),
+                          outcome: 'active',
                         }
                 
                         const docId = `${gameId}_${playerName}_${market.market_key}`;
@@ -211,8 +212,8 @@ exports.createPlayerPropsProfile = functions.pubsub.schedule('2 5 * * *')
 
   exports.removePastGames = functions.pubsub.schedule('59 23 * * 0,1,4')
   .onRun(async(context)=> {
-      const returnVal = await checkGameState('1ABh4KMWfpGomoif2l9z');
-    console.log(returnVal);
+    const data = await checkGameState('d1Gh90d1Oc3XxFiXRQhM');
+    console.log(data);
   });
 
 exports.createCompositeNFLGames = functions.pubsub.schedule('6 5 * * 2')
