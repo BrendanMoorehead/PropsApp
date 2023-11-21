@@ -123,12 +123,11 @@ exports.createPlayerPropsProfile = functions.pubsub.schedule('2 5 * * *')
                           gameId: gameId,
                           startTime: gameStartTime,
                           playerId: playerDoc.data.player.id,
-                          nflApiGameId: JSON.stringify(matchedGame.data().apiGameId),
+                          nflApiGameId: parseInt(matchedGame.data().apiGameId),
                           outcome: 'active',
                         }
                 
-                        const docId = `${gameId}_${playerName}_${market.market_key}`;
-                        promises.push(admin.firestore().collection('futurePlayerPropProfiles').doc(docId).set(profile));
+                        promises.push(admin.firestore().collection('futurePlayerPropProfiles').doc().set(profile));
                     }
                 } catch (error) {
                     console.error("Error retrieving market for game ID " + gameId + ": ", error);
@@ -311,7 +310,40 @@ exports.getAllPlayers = functions.pubsub.schedule('10 5 1 * *') //Executes once 
         }
 });
 
+exports.resolveUserProps = functions.pubsub.schedule('59 23 * * 0,1,4')
+  .onRun(async(context)=> {
+    try{
+        const users = await admin.firestore().collection('users').get();
+        for (const user of users.docs){
+            try{
+                const props = await admin.firestore().collection('activePicks').get();
+                for (const pick of props){
+                    
+                }
+            }catch (error){
+                //Move to next user if there are no active picks
+                continue;
+            }
+        }
+    }catch (error) {
 
+    } 
+
+  });
+
+exports.checkPropProfileHit = functions.pubsub.schedule('59 23 * * 0,1,4')
+.onRun(async(context)=> {
+    const propProfiles = await admin.firestore().collection('futurePlayerPropProfiles').get();
+    for (const profile of propProfiles.docs){
+        //Check if start time is in future, and if game is live
+        if (!isFuture(profile.startTime)){
+            await checkPropHit(profile.id);
+            await delay(200);
+        }
+        else continue;
+    }
+
+});
 
 
 

@@ -9,16 +9,37 @@ import { getUsernameFromUID } from "./dataService";
  * @param {*} toUID The user id for the user receiving the request.
  * @param {*} username The username of the user sending the request.
  */
-export const sendFriendRequest = async (fromUID, toUID, username) => {
-    const friendRequestRef = doc(FIRESTORE_DB, 'users', toUID, 'friendRequests', fromUID);
+export const sendFriendRequest = async (fromUID, toUID, fromUsername, toUsername) => {
+    const receiverRequestRef = doc(FIRESTORE_DB, 'users', toUID, 'friendRequests', fromUID);
+    const senderRequestRef = doc(FIRESTORE_DB, 'users', fromUID, 'friendRequests', toUID);
     try{
-        await setDoc(friendRequestRef, {
+        await setDoc(receiverRequestRef, {
             from: fromUID,
-            username: username,
+            username: fromUsername,
             timestamp: Timestamp.fromDate(new Date()),
             status: 'pending',
+            direction: 'incoming'
+        });
+        await setDoc(senderRequestRef, {
+            to: toUID,
+            username: toUsername,
+            timestamp: Timestamp.fromDate(new Date()),
+            status: 'pending',
+            direction: 'outgoing'
         });
         console.log("Friend request sent.");
+    }catch(err){
+        throw new Error("Failed to send friend request: "+ err);
+    }
+}
+
+export const cancelFriendRequest = async (fromUID, toUID) => {
+    const receiverRequestRef = doc(FIRESTORE_DB, 'users', toUID, 'friendRequests', fromUID);
+    const senderRequestRef = doc(FIRESTORE_DB, 'users', fromUID, 'friendRequests', toUID);
+    try{
+        await deleteDoc(receiverRequestRef);
+        await deleteDoc(senderRequestRef);
+        console.log("Friend request cancelled.");
     }catch(err){
         throw new Error("Failed to send friend request: "+ err);
     }
@@ -33,7 +54,8 @@ export const sendFriendRequest = async (fromUID, toUID, username) => {
 export const acceptFriendRequest = async (currentUid, requestFromUid) => {
     const friendRef = doc(FIRESTORE_DB, 'users', currentUid, 'friends', requestFromUid);
     const inverseFriendRef = doc(FIRESTORE_DB, 'users', requestFromUid, 'friends', currentUid);
-    const friendRequestRef = doc(FIRESTORE_DB, 'users', currentUid, 'friendRequests', requestFromUid);
+    const receiverRequestRef = doc(FIRESTORE_DB, 'users', requestFromUid, 'friendRequests', currentUid);
+    const senderRequestRef = doc(FIRESTORE_DB, 'users', currentUid, 'friendRequests', requestFromUid);
 
     const myUsername = await getUsernameFromUID(currentUid);
     const thierUsername = await getUsernameFromUID(requestFromUid);
@@ -49,7 +71,10 @@ export const acceptFriendRequest = async (currentUid, requestFromUid) => {
             friendUsername: myUsername,
             timestamp: Timestamp.fromDate(new Date()),
         })
-        await setDoc(friendRequestRef, {
+        await setDoc(receiverRequestRef, {
+            status: 'accepted',
+        }, {merge:true});
+        await setDoc(senderRequestRef, {
             status: 'accepted',
         }, {merge:true});
         console.log("Friend request accepted.");
@@ -66,8 +91,10 @@ export const acceptFriendRequest = async (currentUid, requestFromUid) => {
  */
 export const rejectFriendRequest = async (toUID, fromUID) => {
     try{
-        const friendRequestRef = doc(FIRESTORE_DB, 'users', toUID, 'friendRequests', fromUID);
-        await deleteDoc(friendRequestRef);
+        const receiverRequestRef = doc(FIRESTORE_DB, 'users', toUID, 'friendRequests', fromUID);
+        const senderRequestRef = doc(FIRESTORE_DB, 'users', fromUID, 'friendRequests', toUID);
+        await deleteDoc(receiverRequestRef);
+        await deleteDoc(senderRequestRef);
     } catch(error){
         throw new Error("Failed to delete friend request: " + error);
     }
@@ -96,7 +123,7 @@ export const getFriendRequests = async (uid) => {
     const querySnapshot = await getDocs(q);
 
     const documents = [];
-
+    if (querySnapshot.empty) return [];
     querySnapshot.forEach(doc =>{
         if (doc.data().status === 'pending')
         documents.push({id: doc.id, data: doc.data()});
@@ -104,7 +131,7 @@ export const getFriendRequests = async (uid) => {
     return documents;
     }
     catch(e){
-        throw new Error("Failed to retrieve friend requests." + e);
+        throw new Error("Failed to retrieve friend requests." + e.message);
     }
 }
 
@@ -121,13 +148,13 @@ export const getFriendList = async(uid) => {
         const querySnapshot = await getDocs(q);
 
         const documents = [];
-
+        if (querySnapshot.empty) return [];
         querySnapshot.forEach(doc =>{
             documents.push({id: doc.id, data: doc.data()});
         });
         return documents;
 
     }catch(e){
-        throw new Error("Failed to get friend list.");
+        throw new Error("Failed to get friend list." + e);
     }
 }

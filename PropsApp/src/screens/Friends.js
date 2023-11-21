@@ -1,5 +1,5 @@
 import { View, Text, TextInput,StyleSheet, ActivityIndicator, FlatList, Button } from 'react-native'
-import React from 'react'
+import React, {createContext, useContext} from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { getAllUsernames } from '../service/dataService'
 import { useState, useEffect } from 'react'
@@ -11,86 +11,30 @@ import { createMaterialTopTabNavigator } from '@react-navigation/material-top-ta
 import FriendList from './FriendList'
 import FriendSearch from './FriendSearch'
 import FriendRequests from './FriendRequests'
+import { FriendsProvider } from '../providers/FriendsProvider'
+
+
+
 
 const Friends = ({route}) => {
   const {user} = route.params;
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [data, setData] = useState([]);
-  const [error, setError] = useState(null);
-  const [fullData, setFullData] = useState([]);
-  const [activeUser, setActiveUser] = useState('');
+
+  const contextValue = {
+
+  }
 
   const Tab = createMaterialTopTabNavigator();
 
-  useEffect(() => {
-    setIsLoading(true);
-    currUser = getCurrUser();
-    setActiveUser(currUser);
-    fetchData();
-    setIsLoading(false);
-  }, []);
-
-  const getCurrUser = async () => {
-    return await AsyncStorage.getItem('userToken', uid);
-  }
-
-  const handleSearch = (query) => {
-    setSearchQuery(query);
-    const formattedQuery = query.toLowerCase();
-    const filteredData = filter(fullData, (user) => {
-      return contains(user, formattedQuery);
-    });
-    setData(filteredData);
-  }
-
-  const contains = (user, query) => {
-    const id = user.id.toLowerCase();
-    if (user.uid === activeUser){
-      return false;
-    }
-    if (id.includes(query)){
-      return true;
-    }else{
-      return false;
-    }
-  }
-
-  const fetchData = async() => {
-    try{
-      usernameRef = await getAllUsernames();
-      setFullData(usernameRef);
-      console.log(fullData);
-    }catch(error){
-      setError(error);
-      console.log(error);
-    }
-  }
-
-  if(isLoading){
-    return (
-      <SafeAreaView style={{flex:1, justifyContent:'center', alignItems:"center"}}>
-      <ActivityIndicator size="large" color="black"/>
-      </SafeAreaView>
-    )
-  }
-
-  if (error){
-    return (
-      <SafeAreaView style={{flex:1, justifyContent:'center', alignItems:"center"}}>
-      <Text>Error fetching data... Please check your internet connection.</Text>
-      </SafeAreaView>
-    )
-  }
 
   return (
     <SafeAreaView style={{flex:1}}>
-      
+      <FriendsProvider>
         <Tab.Navigator>
           <Tab.Screen name="Friend List" component={FriendList}/>
           <Tab.Screen name="Add Friends" component={FriendSearch} initialParams={{user:user}}/>
           <Tab.Screen name="Requests" component={FriendRequests}/>
         </Tab.Navigator>
+        </FriendsProvider>
     </SafeAreaView>
   )
 }

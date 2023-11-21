@@ -44,6 +44,9 @@ export const signUpWithEmail = async (email, password, username) => {
         await setDoc(doc(FIRESTORE_DB, 'users', uid), {
             email: email,
             uid: uid,
+            wins: 0,
+            losses: 0,
+            streak: 0,
         }, {merge:true});
         return uid;
     } catch (error){

@@ -3,6 +3,8 @@
  const functions = require('firebase-functions');
  const axios = require('axios');
 
+const { updateDoc } = require('firebase/firestore');
+
 /**
  * Checks if a given date string is in the future.
  * 
@@ -37,9 +39,14 @@
     }
 }
 
+/**
+ * Checks if a given game is live or not.
+ * 
+ * @param {*} gameID A game ID from the NFLGames collection.
+ * @returns true if the game is live, false otherwise.
+ */
 const checkIfGameIsLive = async (gameID) => {
     const liveGames = await getLiveGames();
-    console.log("checkifgameislive");
     if (liveGames.length > 0){
         for (game in liveGames) {
             console.log(game);
@@ -49,6 +56,11 @@ const checkIfGameIsLive = async (gameID) => {
     else return false;
 }
 
+/**
+ * Gets the live NFL games from the NFL API.
+ * 
+ * @returns an array of the currently live NFL games.
+ */
 const getLiveGames = async () => {
     const options = {
         method: 'GET',
@@ -59,9 +71,7 @@ const getLiveGames = async () => {
     }};
     const response = await axios.get(`https://americanfootballapi.p.rapidapi.com/api/american-football/matches/live`, 
     { headers: options.headers });
-    console.log("LIVEGAMESCALLED");
-    const matchesArr = response.data;
-    
+    const matchesArr = response.data; 
     return matchesArr;
 }
 
@@ -300,35 +310,120 @@ const removeZeroHandicaps = (market) => {
 
 //Needs to move the prop over
 //Needs to error check if the response is null (maybe only runs if game has passed)
-const checkPropHit = async (propProfileDoc) => {
-    const prop = propProfileDoc.data();
+const checkPropHit = async (propProfileDocId) => {
+    const docRef = admin.firestore().collection('futurePlayerPropProfiles').doc(propProfileDocId);
+    const ref = await docRef.get();
+    const prop = ref.data();
+    console.log(prop);
     const playerID = prop.playerId;
     const gameID = prop.nflApiGameId;
     const line = prop.handicap;
-    const market = prop.market_key;
+    const market = prop.marketKey;
 
     const options = {
         method: 'GET',
-        url: `https://americanfootballapi.p.rapidapi.com/api/american-football/matches/${gameID}/player/${playerID}/statistics`,
+        url: `https://americanfootballapi.p.rapidapi.com/api/american-football/match/${gameID}/player/${playerID}/statistics`,
         headers: {
         'X-RapidAPI-Key': functions.config().nfl_api.api_key,
         'X-RapidAPI-Host': 'americanfootballapi.p.rapidapi.com'
     }};
-    const response = await axios.get(`https://americanfootballapi.p.rapidapi.com/api/american-football/matches/${gameID}/player/${playerID}/statistics`, 
+    try {
+    const response = await axios.get(`https://americanfootballapi.p.rapidapi.com/api/american-football/match/${gameID}/player/${playerID}/statistics`, 
     { headers: options.headers });
     //For receptions
-    if (market == 'player_receptions_over_under'){
-        const receptions = response.data.statistics.receivingReceptions;
-        if (line > receptions){
-            await propProfileDoc.update({outcome: 'over'});
-        }
-        else {
-            await propProfileDoc.update({outcome: 'under'});
+    console.log(market);
+    if (response && response.data) {
+        if (market == 'player_receptions_over_under'){
+            console.log(response);
+            const receptions = response.data.statistics.receivingReceptions;
+            console.log("count" + receptions);
+            if (receptions){
+                let outcome;
+                if (receptions > line){
+                    outcome = "over";
+                }
+                else {
+                    outcome = "under";
+                }
+                const completePropsRef = admin.firestore().collection('completePlayerProps');
+                const docName = `${gameID}_${playerID}`;
+                await completePropsRef.doc(docName).set({
+                    ...prop,
+                    outcome: outcome,
+                    receptions: receptions
+                });
+                await docRef.delete();
+            }
         }
     }
+    } catch(error){
+        throw new Error ("Failed to upate: " + error);
+    }
+
 }
 
+const checkUserProp = async (userID, propID) => {
+    const docRef = admin.firestore().collection('users')
+    .doc(userID).collection("activePicks").doc(propID);
+    const ref = await docRef.get();
+    const prop = ref.data();
 
+    const gameID = prop.prop.nflApiGameId;
+    const playerID = prop.prop.playerId; 
+    const pick = prop.pick;
+
+    const completedPropRef = admin.firestore().collection('users').doc(userID).collection("activePicks").doc(propID);
+    const completeRef = completedPropRef.get();
+    const completedProp = completeRef.data();
+    const outcome = completedProp.outcome;
+    const receptions = completedProp.receptions;
+
+    let won;
+    if (outcome == pick){
+        won = true;
+    }else{
+        won = false;
+    }
+    const completedUserPropRef = admin.firestore().collection('users').doc(userID).collection("completePicks");
+    const docName = `${gameID}_${playerID}`;
+    await completedUserPropRef.doc(docName).set({
+        ...prop,
+        won: won,
+        outcome: outcome,
+        receptions: receptions
+    });
+    await docRef.delete();
+
+    updateRecord(userID, won);
+}
+
+const updateRecord = async (userID, won) => {
+    const docRef = admin.firestore().collection('users')
+    .doc(userID);
+    const ref = await docRef.get();
+    const user = ref.data();
+
+    let wins = user.wins;
+    let losses = user.losses;
+    let streak = user.streak;
+
+    if (won){ 
+        wins++;
+        streak++;
+    }
+    else {
+        losses++;
+        streak = 0;
+    }
+    
+    await docRef.doc(userID).set({
+        ...p,
+        wins: wins,
+        losses: losses,
+        streak: streak,
+    });
+
+}
 
 module.exports = {
     isFuture, 

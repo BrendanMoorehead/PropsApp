@@ -3,39 +3,21 @@ import {useState, useEffect} from 'react'
 import React from 'react'
 import { getFriendList, acceptFriendRequest, removeFriend } from '../service/friendService'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { useFriends } from '../providers/FriendsProvider'
+
 
 const FriendList = () => {
-    const [requests, setRequests] = useState([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const [activeUID, setActiveUID] = useState('');
-    useEffect(() => {
-      fetchRequests();
-    }, []);
-    
-    const fetchRequests = async () => {
-      try{
-        
-        setIsLoading(true);
-        const uid = await AsyncStorage.getItem("userToken");
-        const req = await getFriendList(uid);
-        setActiveUID(uid);
-        setRequests(req);
-      }catch(err){
-        console.error(err.message);
-      }finally{setIsLoading(false);}
-    }
+   
+  const {
+    isLoading, 
+    handleRemove,
+    friendsList,
+  } = useFriends();
 
-    const handleRemove = async (currUID, acceptUID) => {
-      try{
-      setIsLoading(true);
-      await removeFriend(currUID, acceptUID);
-      } catch(error){
-        console.error("failed to remove friend: " + error);
-      }finally{
-        await fetchRequests();
-        setIsLoading(false);
-      }
-    }
+  const handleRemoveFriend = async (uid) => {
+    handleRemove(uid);
+  }
+    
     if(isLoading){
       return (
         <SafeAreaView style={{flex:1, justifyContent:'center', alignItems:"center"}}>
@@ -46,12 +28,12 @@ const FriendList = () => {
     return (
       <View style={{flex:1, marginHorizontal: 20, marginVertical: 20}}>
        <FlatList
-          data={requests}
+          data={friendsList}
           keyExtractor={(item) => item.id}
           renderItem={({item}) => (
             <View style={styles.itemContainer}>
               <Text style={styles.textName}>{item.data.friendUsername}</Text>
-              <Button title="Remove" onPress={() => handleRemove(activeUID, item.id)}/>
+              <Button title="Remove" onPress={() => handleRemoveFriend(activeUID)}/>
             </View>
           )}
         ></FlatList>

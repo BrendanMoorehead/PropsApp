@@ -3,50 +3,53 @@ import {useState, useEffect} from 'react'
 import React from 'react'
 import { getFriendRequests, acceptFriendRequest, rejectFriendRequest } from '../service/friendService'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { useFriends } from '../providers/FriendsProvider'
+import Divider from '../components/Divider'
+import Header from '../components/Header'
 
 const FriendRequests = () => {
-  const [requests, setRequests] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [activeUID, setActiveUID] = useState('');
-  useEffect(() => {
-    const fetchRequests = async () => {
-      try{
-        
-        setIsLoading(true);
-        const uid = await AsyncStorage.getItem("userToken");
-        const req = await getFriendRequests(uid);
-        setActiveUID(uid);
-        setRequests(req);
-      }catch(err){
-        console.error(err.message);
-      }finally{setIsLoading(false);}
-    }
-    fetchRequests();
-  }, []);
+  
+  const {
+    isLoading, 
+    requests,
+    handleRequestAccept,
+    handleRequestReject,
+    handleRequestCancel
+    } = useFriends();
+  
 
-  const handleAccept = async (currUID, acceptUID) => {
-    try{
-    setIsLoading(true);
-    await acceptFriendRequest(currUID, acceptUID);
-    const updatedReq = await getFriendRequests(activeUID);
-    setRequests(updatedReq);
-    } catch(error){
-      console.error("failed to accept friend request." + error);
-    }finally{
-      setIsLoading(false);
-    }
+  const handleAccept = async (senderUID, senderUsername) => {
+    handleRequestAccept(senderUID, senderUsername);
   }
-  const handleReject = async (currUID, requestUID) => {
-    try{
-      await rejectFriendRequest(currUID, requestUID);
-      const updatedReq = await getFriendRequests(activeUID);
-      setRequests(updatedReq);
-    }catch(error){
-      console.error("Failed to reject friend request: " + error);
-    }finally{
-      setIsLoading(false);
-    }
+  const handleReject = async (senderUID, senderUsername) => {
+    handleRequestReject(senderUID, senderUsername);
   }
+  const handleCancel = async (recieverUID) => {
+    handleRequestCancel(recieverUID);
+  }
+
+  const preprocessData = (requests) => {
+    const incomingRequests = requests.filter(item => item.data.direction === 'incoming');
+    const outgoingRequests = requests.filter(item => item.data.direction === 'outgoing');
+    const dataWithHeaders = [];
+
+    if (incomingRequests.length > 0) {
+      dataWithHeaders.push({ isHeader: true, title: 'Incoming' });
+      dataWithHeaders.push(...incomingRequests);
+    }
+  
+    if (outgoingRequests.length > 0) {
+      dataWithHeaders.push({ isHeader: true, title: 'Outgoing' });
+      dataWithHeaders.push(...outgoingRequests);
+    }
+  
+    return dataWithHeaders;
+  };
+
+
+  
+
+  const sortedData = preprocessData(requests);
 
   if(isLoading){
     return (
@@ -55,19 +58,36 @@ const FriendRequests = () => {
       </SafeAreaView>
     )
   }
+
+  const renderItem = ({item}) => {
+
+    if (item.isHeader) {
+      return <Header title={item.title} />;
+    }
+      return (<View style={styles.itemContainer}>
+      <Text style={styles.textName}>{item.data.username}</Text>
+      {item.data.direction === 'incoming' ? (
+        <>
+          <Button title="Accept" onPress={() => handleAccept(item.id, item.data.username)}/>
+          <Button title="Reject" onPress={() => handleReject(item.id, item.data.username)}/>
+        </>
+      ) : (
+        <>
+          <Button title="Cancel" onPress={() => handleCancel(item.id)}/>
+        </>
+      )}
+      
+      </View>);
+
+  }
+
   return (
     <View style={{flex:1, marginHorizontal: 20, marginVertical: 20}}>
      <FlatList
-        data={requests}
-        keyExtractor={(item) => item.id}
-        renderItem={({item}) => (
-          <View style={styles.itemContainer}>
-            <Text style={styles.textName}>{item.data.username}</Text>
-            <Button title="Accept" onPress={() => handleAccept(activeUID, item.id)}/>
-            <Button title="Reject" onPress={() => handleReject(activeUID, item.id)}/>
-          </View>
-        )}
-      ></FlatList>
+        data={sortedData}
+        keyExtractor={(item, index) => item.isDivider ? 'divider_' + index : item.id}
+          renderItem={renderItem}
+      />
     </View>
   )
 }
