@@ -27,7 +27,7 @@ const Friends = ({route}) => {
 
 
   return (
-    <SafeAreaView style={{flex:1}}>
+    <SafeAreaView style={{flex:1, backgroundColor:"#1a1a1a"}}>
       <FriendsProvider>
         <Tab.Navigator>
           <Tab.Screen name="Friend List" component={FriendList}/>

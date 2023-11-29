@@ -46,9 +46,9 @@ export const FriendsProvider = ({ children }) => {
         const fetchAdditionalData = async () =>{
             try{
                 console.log("call");
-                await fetchAllUsernames();
                 await fetchFriendList();
                 await fetchFriendRequests();
+                await fetchAllUsernames();
             } catch (e) {
                 throw new Error ('Failed to fetch startup data: ' + e.message);
             }  finally {
@@ -70,7 +70,7 @@ export const FriendsProvider = ({ children }) => {
             usernameArray = await getAllUsernames();
             setUsernameList(usernameArray);
         } catch (e) {
-            throw new Error("Failed get inital list of usernames for search functionality.");
+            throw new Error("Failed get inital list of usernames for search functionality." + e);
         } finally {
             setIsLoading(false);
         }
@@ -200,6 +200,7 @@ export const FriendsProvider = ({ children }) => {
     }
     const contains = (user, query) => {
         const id = String(user.id).toLowerCase();
+
         return id !== activeUsername.toLowerCase() && id.includes(query);
     }
     
@@ -212,6 +213,7 @@ export const FriendsProvider = ({ children }) => {
         try {
             setIsLoading(true);
             await removeFriend(activeUID, friendUID);
+            await getFriendList();
         } catch (e) {
             throw new Error("Failed to remove friend from friends list.");
         } finally {

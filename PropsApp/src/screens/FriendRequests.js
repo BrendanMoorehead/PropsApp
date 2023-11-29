@@ -59,6 +59,13 @@ const FriendRequests = () => {
     )
   }
 
+  if (requests.length == 0){
+    return (
+      <SafeAreaView style={{flex:1, justifyContent:'center', alignItems:"center"}}>
+        <Text>No requests found. Send one on the Add Friends Tab!</Text>
+      </SafeAreaView>
+    )
+  }
   const renderItem = ({item}) => {
 
     if (item.isHeader) {

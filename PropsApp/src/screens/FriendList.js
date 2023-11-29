@@ -14,8 +14,8 @@ const FriendList = () => {
     friendsList,
   } = useFriends();
 
-  const handleRemoveFriend = async (uid) => {
-    handleRemove(uid);
+  const handleRemoveFriend = async (friendUID) => {
+    handleRemove(friendUID);
   }
     
     if(isLoading){
@@ -25,15 +25,22 @@ const FriendList = () => {
         </SafeAreaView>
       )
     }
+    if (friendsList.length == 0){
+      return (
+      <SafeAreaView style={{flex:1, justifyContent:'center', alignItems:"center"}}>
+        <Text>No friends found. Add some on the Add Friends Tab!</Text>
+      </SafeAreaView>
+      )
+    }
     return (
-      <View style={{flex:1, marginHorizontal: 20, marginVertical: 20}}>
+      <View style={{flex:1, marginHorizontal: 20, marginVertical: 20, }}>
        <FlatList
           data={friendsList}
           keyExtractor={(item) => item.id}
           renderItem={({item}) => (
             <View style={styles.itemContainer}>
               <Text style={styles.textName}>{item.data.friendUsername}</Text>
-              <Button title="Remove" onPress={() => handleRemoveFriend(activeUID)}/>
+              <Button title="Remove" onPress={() => handleRemoveFriend(item.id)}/>
             </View>
           )}
         ></FlatList>

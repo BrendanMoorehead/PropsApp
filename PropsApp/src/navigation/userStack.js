@@ -2,7 +2,7 @@
 import { View, Text, StyleSheet } from 'react-native'
 import React from 'react'
 import { NavigationContainer } from '@react-navigation/native'
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
+import { BottomTabBarHeightCallbackContext, createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import Ionicons from 'react-native-vector-icons/Ionicons'
 //Screens import
 import FriendsScreen from '../screens/Friends'
@@ -16,6 +16,7 @@ const Tab = createBottomTabNavigator();
 
 const userStack = ({user}) => {
   return (
+    <View style={{flex: 1, backgroundColor: '#1a1a1a'}}>
     <NavigationContainer
       style={styles.nav}
     >
@@ -45,6 +46,16 @@ const userStack = ({user}) => {
           },
           tabBarStyle: {
             backgroundColor: '#121212',
+            margin: 16,
+            marginBottom: 44,
+            borderRadius: 10,
+            paddingBottom: 10,
+            borderTopWidth: 0,  
+            //Shadows
+            shadowColor: '#000000',
+            shadowOffset: {width:0 , height:5},
+            shadowOpacity: 0.8,
+            shadowRadius: 3
           }
         })}
       >
@@ -55,13 +66,12 @@ const userStack = ({user}) => {
         <Tab.Screen name="Profile" component={ProfileScreen}/>
       </Tab.Navigator>
     </NavigationContainer>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
-  nav:{
-    backgroundColor: '#121212',
-  }
+
 })
 
 export default userStack

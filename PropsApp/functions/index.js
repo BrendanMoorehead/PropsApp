@@ -20,26 +20,27 @@ const {
     findPlayerByName, 
     checkPropHit
  } = require ("./helperFunctions");
+const { overEvery } = require('lodash');
 
  admin.initializeApp();
  
- exports.getNFLGames = functions.pubsub.schedule('0 5 * * 2') // Every Tuesday at 5:00 AM
+ /**
+  * Gets the weekly NFL games from the Odds API and stores them in the database.
+  * 
+  * @runs every Tuesday at 5:00AM
+  * @expected_load 3 writes / week
+  */
+ exports.getFutureNFLGames = functions.pubsub.schedule('0 5 * * 2')
   .timeZone('America/New_York')
   .onRun(async () => {
      try {
          const apiKey = functions.config().prop_odds.api_key;
-         const monapiUrl = `https://api.prop-odds.com/beta/games/nfl?date=${getNextMonday()}&tz=America/New_York&api_key=${apiKey}`;
-         const thursapiUrl = `https://api.prop-odds.com/beta/games/nfl?date=${getNextThursday()}&tz=America/New_York&api_key=${apiKey}`;
-         const sunapiUrl = `https://api.prop-odds.com/beta/games/nfl?date=${getNextSunday()}&tz=America/New_York&api_key=${apiKey}`;
- 
-         const monGames = (await axios.get(monapiUrl)).data;
-         const thursGames = (await axios.get(thursapiUrl)).data;
-         const sunGames = (await axios.get(sunapiUrl)).data;
- 
-         await admin.firestore().collection('futureNflGameDays').doc(getNextMonday()).set(monGames);
-         await admin.firestore().collection('futureNflGameDays').doc(getNextThursday()).set(thursGames);
-         await admin.firestore().collection('futureNflGameDays').doc(getNextSunday()).set(sunGames);
- 
+         const gameDays = [getNextThursday(), getNextSunday(), getNextMonday()];  
+         for (const day of gameDays){
+            const apiUrl = `https://api.prop-odds.com/beta/games/nfl?date=${day}&tz=America/New_York&api_key=${apiKey}`;
+            const dayGames = (await axios.get(apiUrl)).data;
+            await admin.firestore().collection('futureNflGameDays').doc(day).set(dayGames);
+         }
          console.log("Games added successfully.");
          return null; // Function executed successfully
      } catch (error) {
@@ -48,10 +49,18 @@ const {
      }
  });
 
-//CHANGE TO TAKE ANY STRING
+/**
+ * Gets the available player reception lines for the next week and stores them in the database.
+ * 
+ * @runs every day at 5:00AM
+ */
 exports.getPlayerReceptions = functions.pubsub.schedule('0 5 * * *')
- .timeZone('America/New_York')
-.onRun(async (context) => {
+.timeZone('America/New_York')
+.onRun(async () => {
+    let batch = admin.firestore().batch();
+    const batchLimit = 500;
+    let operationCount = 0;
+
     try{
         const today = new Date();
         today.setHours(0,0,0,0);
@@ -70,11 +79,21 @@ exports.getPlayerReceptions = functions.pubsub.schedule('0 5 * * *')
                 const url = `https://api.prop-odds.com/beta/odds/${gameId}/player_receptions_over_under?api_key=${apiKey}`;
                 const response = await axios.get(url);
                 const playerPropsData = response.data;
+                const docRef = admin.firestore().collection('playerProps').doc(gameId.toString());
+                batch.set(docRef, playerPropsData);
+                operationCount++;
 
-                await admin.firestore().collection('playerProps').doc(gameId.toString()).set(playerPropsData);
-
+                if (operationCount === batchLimit){
+                    await batch.commit();
+                    batch = admin.firestore().batch();
+                    operationCount = 0;
+                }
+               
             }
             console.log("Player reception props retrieved and stored.");
+        }
+        if (operationCount > 0){
+            await batch.commit();
         }
         return null;
     } catch (error){
@@ -83,13 +102,20 @@ exports.getPlayerReceptions = functions.pubsub.schedule('0 5 * * *')
     }
 });
 
-exports.createPlayerPropsProfile = functions.pubsub.schedule('2 5 * * *')
+/**
+ * Parses the player props stored in the database into individual player profiles.
+ * 
+ * @runs every day at 5:05AM
+ */
+exports.createPlayerPropsProfile = functions.pubsub.schedule('5 5 * * *')
   .timeZone('America/New_York')
-  .onRun(async (context) => {
+  .onRun(async () => {
     try {
       const gameDays = await admin.firestore().collection('playerProps').get();
+      let batch = admin.firestore().batch();
+      const batchLimit = 500;
+      let operationCount = 0;
 
-      const promises = [];
       for (const dayDoc of gameDays.docs) {
         try {
           const gameId = dayDoc.id;
@@ -102,7 +128,6 @@ exports.createPlayerPropsProfile = functions.pubsub.schedule('2 5 * * *')
             if (!matchedGameSnapshot.empty) {
                 // If a match is found, create a new document in the NFLGames collection
                 const matchedGame = matchedGameSnapshot.docs[0];
-                console.log("TEST" + JSON.stringify(matchedGame.data().apiGameId));
                 try {
                     const market = await retrieveSingleMarket(gameId, 'fanduel');
                     for (const outcome of market.outcomes) {
@@ -126,33 +151,50 @@ exports.createPlayerPropsProfile = functions.pubsub.schedule('2 5 * * *')
                           nflApiGameId: parseInt(matchedGame.data().apiGameId),
                           outcome: 'active',
                         }
-                
-                        promises.push(admin.firestore().collection('futurePlayerPropProfiles').doc().set(profile));
+
+                        const docName = `${playerName}_${market.market_key}_${parseInt(matchedGame.data().apiGameId)}`
+                        docRef = admin.firestore().collection('futurePlayerPropProfiles').doc(docName);
+                        batch.set(docRef, profile);
+                        operationCount++;
+
+                        if (operationCount === batchLimit){
+                            await batch.commit();
+                            batch = admin.firestore().batch;
+                            operationCount = 0;
+                        }
                     }
                 } catch (error) {
                     console.error("Error retrieving market for game ID " + gameId + ": ", error);
                     // Continue to the next dayDoc if retrieveSingleMarket fails
                     continue;
                 }
-            }
-
-          
+            }   
         } catch (error) {
           console.error("Couldn't create profiles for game: " + dayDoc.id, error);
           return;
         }
       }
-      await Promise.all(promises);
+      if (operationCount > 0){
+          await batch.commit();
+      }
     } catch (error) {
       console.error("Profile creation failed.", error);
     }
   });
 
-
-  exports.getNFLGameIds = functions.pubsub.schedule('5 5 * * 2') // Every Tuesday at 5:05 AM
+/**
+ * Gets the upcoming game data for the weekly games from the NFL API.
+ * 
+ * @runs every Tuesday at 5:05AM
+ * NOTE: Tested with batching.
+ */
+  exports.getNFLGameIds = functions.pubsub.schedule('5 5 * * 2')
   .timeZone('America/New_York')
   .onRun(async () => {
     const promises = [];
+    let batch = admin.firestore().batch();
+    const batchLimit = 500;
+    let operationCount = 0;
     const uniqueGameIds = {};
     //Get the upcoming game days
     try{
@@ -172,48 +214,80 @@ exports.createPlayerPropsProfile = functions.pubsub.schedule('2 5 * * *')
             for (const game of nflGames){
                 uniqueGameIds[game.id] = true;
                 const gameRef = admin.firestore().collection('NFLapiGames').doc(game.id.toString());
-                promises.push(gameRef.set(game));
+                batch.set(gameRef, game);
+                operationCount++;
+                if (operationCount === batchLimit){
+                    await batch.commit();
+                    batch = admin.firestore().batch();
+                    operationCount = 0;
+                }
             }
         }
-        await Promise.all(promises);
+        if (operationCount > 0){
+            await batch.commit();
+        }
     } catch (error) {
         throw new Error("Failed to get NFLAPI games: "  + error.message);
     }
   });
 
 
-  exports.disablePastProps = functions.pubsub.schedule('every 20 minutes').onRun(async (context) => {
+  exports.disablePastProps = functions.pubsub.schedule('every 20 minutes').onRun(async () => {
+    try {
       const now = new Date();
       const propsCollection = admin.firestore().collection('futurePlayerPropProfiles');
-
+      const pastPropsCollection = admin.firestore().collection('pastPlayerPropProfiles');
     
-
-      if (querySnapshot.empty){
-          console.log("No props found.");
-          return null;
+      // Query for future props
+      const querySnapshot = await propsCollection.get();
+  
+      if (querySnapshot.empty) {
+        console.log("No future props found.");
+        return null;
       }
+  
+      let batch = admin.firestore().batch();
+      const batchLimit = 500;
+      let operationCount = 0;
+      querySnapshot.forEach(async (doc) => {
+        const prop = doc.data();
+        const startTime = new Date(prop.startTime);
+  
+        if (!isFuture(startTime)) {
+          const futurePropDocRef = propsCollection.doc(doc.id);
+          const pastPropDocRef = pastPropsCollection.doc(doc.id);
 
-      const batch = admin.firestore().batch();
-      querySnapshot.forEach(doc =>{
-          const prop = doc.data();
-          const startTime = new Date(prop.startTime);
-          
-          if (startTime <= now){
-              const docRef = propsCollection.doc(doc.id);
-              batch.update(docRef, {enabled: false});
-              console.log(`Disabling prop ${doc.id}.`);
+          batch.update(futurePropDocRef, { enabled: false });
+          batch.set(pastPropDocRef, prop);
+          batch.delete(futurePropDocRef);
+          operationCount += 3;
+
+          if (operationCount >= (batchLimit - 3)){
+              await batch.commit();
+              batch = admin().firestore().batch();
+              operationCount = 0;
           }
+
+          console.log(`Disabling prop ${doc.id}.`);
+        }
       });
-      await batch.commit()
+      if (operationCount > 0){
+        await batch.commit();
+      }
       console.log("Checked props and updated as needed.");
       return null;
-  })
+    } catch (error) {
+      console.error('Error disabling past props:', error);
+      return null;
+    }
+  });
 
   exports.removePastGames = functions.pubsub.schedule('59 23 * * 0,1,4')
   .onRun(async(context)=> {
     const data = await checkGameState('d1Gh90d1Oc3XxFiXRQhM');
     console.log(data);
   });
+
 
 exports.createCompositeNFLGames = functions.pubsub.schedule('6 5 * * 2')
 .onRun(async(context)=> {
@@ -253,12 +327,20 @@ exports.createCompositeNFLGames = functions.pubsub.schedule('6 5 * * 2')
     }
 });
 
+/**
+ * Writes all NFL teams to the database from the NFL API
+ * 
+ * NOTE: Tested with batching.
+ */
 exports.getAllTeams = functions.pubsub.schedule('5 5 1 * *') //Runs once a month
-.onRun(async(context)=> {
+.onRun(async()=> {
     const promises = [];
     const teamIDs = [4412, 4413, 4414, 4415, 4416, 4417, 4418, 4419, 4420, 4421, 4422, 4423, 4424, 
         4425, 4426, 4427, 4428, 4429, 4430, 4431, 4432, 4386, 4324, 4287, 4390, 4388, 4389, 4387, 4392,
         4345, 4391, 4393];
+    let batch = admin.firestore().batch();
+    const batchLimit = 500; //Firestore batch write limit
+    let operationCount = 0;
     try{
         for (const team of teamIDs){
             const options = {
@@ -272,21 +354,35 @@ exports.getAllTeams = functions.pubsub.schedule('5 5 1 * *') //Runs once a month
             { headers: options.headers });
             const nflTeam = response.data;
             const teamRef = admin.firestore().collection('nflTeams').doc(team.toString());
-            promises.push(teamRef.set(nflTeam));
+
+            batch.set(teamRef, nflTeam);
+            operationCount++;
+
+            if (operationCount === batchLimit){
+                await batch.commit();
+                batch = admin.firestore().batch();
+                operationCount = 0;
+            }
             await delay(200);
+        }
+        if (operationCount > 0){
+            await batch.commit();
         }
     }catch (error){
         console.error("Failed to get NFL teams");
     }
 });
 
-
+//NOTE: Tested with batching
 exports.getAllPlayers = functions.pubsub.schedule('10 5 1 * *') //Executes once a month.
 .onRun(async(context)=> {
     const promises = [];
     const teamIDs = [4412, 4413, 4414, 4415, 4416, 4417, 4418, 4419, 4420, 4421, 4422, 4423, 4424, 
         4425, 4426, 4427, 4428, 4429, 4430, 4431, 4432, 4386, 4324, 4287, 4390, 4388, 4389, 4387, 4392,
         4345, 4391, 4393];
+        let batch = admin.firestore().batch();
+        const batchLimit = 500;
+        let operationCount = 0;
         try{
             for (const team of teamIDs){
                 const options = {
@@ -301,9 +397,20 @@ exports.getAllPlayers = functions.pubsub.schedule('10 5 1 * *') //Executes once 
                 const nflTeamPlayers = response.data.players;
                 for (const player of nflTeamPlayers) {
                     const playerRef = admin.firestore().collection('nflPlayers').doc();
-                    promises.push(playerRef.set(player));
+
+                    batch.set(playerRef, player);
+                    operationCount++;
+
+                    if (operationCount === batchLimit){
+                        await batch.commit();
+                        batch = admin.firestore().batch();
+                        operationCount = 0;
+                    }
                 }
                 await delay(200);
+            }
+            if (operationCount > 0){
+                await batch.commit();
             }
         }catch (error){
             console.error("Failed to get NFL players");
@@ -318,7 +425,8 @@ exports.resolveUserProps = functions.pubsub.schedule('59 23 * * 0,1,4')
             try{
                 const props = await admin.firestore().collection('activePicks').get();
                 for (const pick of props){
-                    
+                    if (isFuture(pick.startTime)) continue;
+
                 }
             }catch (error){
                 //Move to next user if there are no active picks

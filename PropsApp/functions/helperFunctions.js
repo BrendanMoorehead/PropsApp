@@ -3,8 +3,6 @@
  const functions = require('firebase-functions');
  const axios = require('axios');
 
-const { updateDoc } = require('firebase/firestore');
-
 /**
  * Checks if a given date string is in the future.
  * 
@@ -422,7 +420,14 @@ const updateRecord = async (userID, won) => {
         losses: losses,
         streak: streak,
     });
+}
 
+// LEADERBOARD FUNCTIONS
+const createScore = async (score, userID) => {
+    await admin.firestore().collection("wins").doc().create({
+        user: userID,
+        score: score
+    });
 }
 
 module.exports = {

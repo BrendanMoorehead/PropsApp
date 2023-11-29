@@ -9,10 +9,14 @@ const FriendSearch = ({route}) => {
     handleSearch, 
     handleRequestSend,
     searchQuery,
-    searchResults} = useFriends();
+    searchResults,
+    handleRequestAccept} = useFriends();
 
   const handleSend = async (uid, username) => {
     handleRequestSend(uid, username);
+  }
+  const addBack = async (uid) => {
+    handleRequestAccept(uid);
   }
 
   if(isLoading){
