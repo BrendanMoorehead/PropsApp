@@ -308,11 +308,10 @@ const removeZeroHandicaps = (market) => {
 
 //Needs to move the prop over
 //Needs to error check if the response is null (maybe only runs if game has passed)
-const checkPropHit = async (propProfileDocId) => {
-    const docRef = admin.firestore().collection('futurePlayerPropProfiles').doc(propProfileDocId);
+const checkPropHit = async (propProfileDocId, batch) => {
+    const docRef = admin.firestore().collection('pastPlayerPropProfiles').doc(propProfileDocId);
     const ref = await docRef.get();
     const prop = ref.data();
-    console.log(prop);
     const playerID = prop.playerId;
     const gameID = prop.nflApiGameId;
     const line = prop.handicap;
@@ -329,30 +328,23 @@ const checkPropHit = async (propProfileDocId) => {
     const response = await axios.get(`https://americanfootballapi.p.rapidapi.com/api/american-football/match/${gameID}/player/${playerID}/statistics`, 
     { headers: options.headers });
     //For receptions
-    console.log(market);
     if (response && response.data) {
-        if (market == 'player_receptions_over_under'){
-            console.log(response);
+        if (market == 'player_receptions_over_under'){;
             const receptions = response.data.statistics.receivingReceptions;
-            console.log("count" + receptions);
             if (receptions){
-                let outcome;
-                if (receptions > line){
-                    outcome = "over";
-                }
-                else {
-                    outcome = "under";
-                }
-                const completePropsRef = admin.firestore().collection('completePlayerProps');
-                const docName = `${gameID}_${playerID}`;
-                await completePropsRef.doc(docName).set({
+                let outcome = receptions > line ? "over" : "under";
+
+                const completePropsRef = admin.firestore().collection('completePlayerPropProfiles');
+                const newDocRef = completePropsRef.doc(propProfileDocId);
+                batch.set(newDocRef, {
                     ...prop,
                     outcome: outcome,
                     receptions: receptions
                 });
-                await docRef.delete();
+                batch.delete(docRef);
             }
         }
+        //Add additional markets
     }
     } catch(error){
         throw new Error ("Failed to upate: " + error);
@@ -361,16 +353,18 @@ const checkPropHit = async (propProfileDocId) => {
 }
 
 const checkUserProp = async (userID, propID) => {
+    try{
     const docRef = admin.firestore().collection('users')
     .doc(userID).collection("activePicks").doc(propID);
+    const propRef = admin.firestore().collection("completePlayerPropProfiles");
     const ref = await docRef.get();
     const prop = ref.data();
 
-    const gameID = prop.prop.nflApiGameId;
-    const playerID = prop.prop.playerId; 
+    //const gameID = prop.prop.nflApiGameId;
+    //const playerID = prop.prop.playerId; 
     const pick = prop.pick;
 
-    const completedPropRef = admin.firestore().collection('users').doc(userID).collection("activePicks").doc(propID);
+    const completedPropRef = admin.firestore().collection('completePlayerPropProfiles').doc(propID);
     const completeRef = completedPropRef.get();
     const completedProp = completeRef.data();
     const outcome = completedProp.outcome;
@@ -382,6 +376,7 @@ const checkUserProp = async (userID, propID) => {
     }else{
         won = false;
     }
+
     const completedUserPropRef = admin.firestore().collection('users').doc(userID).collection("completePicks");
     const docName = `${gameID}_${playerID}`;
     await completedUserPropRef.doc(docName).set({
@@ -394,8 +389,13 @@ const checkUserProp = async (userID, propID) => {
 
     updateRecord(userID, won);
 }
+catch(e){
+    console.log("helper: " + e);
+}
+}
 
 const updateRecord = async (userID, won) => {
+    try{
     const docRef = admin.firestore().collection('users')
     .doc(userID);
     const ref = await docRef.get();
@@ -415,11 +415,15 @@ const updateRecord = async (userID, won) => {
     }
     
     await docRef.doc(userID).set({
-        ...p,
+        ...user,
         wins: wins,
         losses: losses,
         streak: streak,
     });
+    }
+    catch(e){
+        console.log("winss" + e);
+    }
 }
 
 // LEADERBOARD FUNCTIONS
@@ -446,5 +450,6 @@ module.exports = {
     removeDuplicateOutcomes,
     removeZeroHandicaps,
     findPlayerByName, 
-    checkPropHit
+    checkPropHit,
+    checkUserProp
 }

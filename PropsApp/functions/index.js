@@ -18,9 +18,11 @@ const {
     removeDuplicateOutcomes,
     removeZeroHandicaps,
     findPlayerByName, 
-    checkPropHit
+    checkPropHit,
+    checkUserProp
  } = require ("./helperFunctions");
 const { overEvery } = require('lodash');
+const { user } = require('firebase-functions/v1/auth');
 
  admin.initializeApp();
  
@@ -419,39 +421,105 @@ exports.getAllPlayers = functions.pubsub.schedule('10 5 1 * *') //Executes once 
 
 exports.resolveUserProps = functions.pubsub.schedule('59 23 * * 0,1,4')
   .onRun(async(context)=> {
-    try{
-        const users = await admin.firestore().collection('users').get();
-        for (const user of users.docs){
-            try{
-                const props = await admin.firestore().collection('activePicks').get();
-                for (const pick of props){
-                    if (isFuture(pick.startTime)) continue;
+      const completePlayerProps = await admin.firestore().collection('completePlayerPropProfiles').get();
+      const completePropIds = completePlayerProps.docs.map(doc => doc.id);
 
+      const usersRef = admin.firestore().collection('users');
+      const usersSnapshot = await usersRef.get();
+
+      let batch = admin.firestore().batch();
+      const batchLimit = 500;
+      let operationCount = 0;
+    try{
+        for (const user of usersSnapshot.docs){
+            try{
+
+                const activePicksRef = usersRef.doc(user.id).collection('activePicks');
+                console.log(user.id);
+                const activePicksSnapshot = await activePicksRef.get();
+                for (const pick of activePicksSnapshot.docs){
+                    console.log(pick.propId);
+                    if (completePropIds.includes(pick.data.propId)){
+                        //propData = completePlayerProps.doc(pick.propId).get();
+                        console.log("MATCH");
+                        checkUserProp(user.id, pick.id);
+                    }
                 }
             }catch (error){
                 //Move to next user if there are no active picks
+                console.log("catch: "+error);
                 continue;
             }
         }
     }catch (error) {
-
+        console.log("init catch: "+error);
     } 
 
   });
 
 exports.checkPropProfileHit = functions.pubsub.schedule('59 23 * * 0,1,4')
 .onRun(async(context)=> {
-    const propProfiles = await admin.firestore().collection('futurePlayerPropProfiles').get();
+    const propProfiles = await admin.firestore().collection('completePlayerPropProfiles').get();
+    let batch = admin.firestore().batch();
+    const batchLimit = 500;
+    let operationCount = 0;
     for (const profile of propProfiles.docs){
         //Check if start time is in future, and if game is live
         if (!isFuture(profile.startTime)){
-            await checkPropHit(profile.id);
+            await checkPropHit(profile.id, batch);
+            operationCount += 2;
+            if (operationCount >= batchLimit){
+                await batch.commit();
+                batch = admin.firestore().batch();
+                operationCount = 0;
+            }
             await delay(200);
         }
         else continue;
     }
-
+    if (operationCount > 0){
+        await batch.commit();
+    }
 });
 
+exports.removePastNFLGames = functions.pubsub.schedule('0 0 * * 2')
+.onRun(async() => {
+    const nflGames = await admin.firestore().collection('NFLGames').get();
+    const nflAPIGames = await admin.firestore().collection("NFLapiGames").get();
+    let batch = admin.firestore().batch();
+    const batchLimit = 500;
+    let operationCount = 0;
 
+    for (const game of nflGames.docs){
+        if (!isFuture(game.data().start_timestamp)){
+            batch.delete(game.ref);
+            operationCount++;
+            if (operationCount >= batchLimit){
+                await batch.commit();
+                batch = admin.firestore().batch();
+                operationCount = 0;
+            }
+        }
+    }
+    for (const game of nflAPIGames.docs){
+        const date = new Date(game.data().startTimestamp * 1000);
+        if (!isFuture(date)){
+            batch.delete(game.ref);
+            operationCount++;
+            if (operationCount >= batchLimit){
+                await batch.commit();
+                batch = admin.firestore().batch();
+                operationCount = 0;
+            }
+        }
+    }
+
+    if (operationCount > 0){
+        await batch.commit().then(() => {
+            console.log("successfully deleted batch items");
+        }).catch(error => {
+            console.error("Error deleting the document in batch", error);
+        });
+    }
+});
 

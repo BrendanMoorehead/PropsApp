@@ -13,7 +13,6 @@ export const setPick = async (pick, prop, uid) => {
     const userPicksRef = collection(FIRESTORE_DB, 'users', uid, "activePicks");
     try {
         await addDoc(userPicksRef, {
-            prop: prop,
             pick: pick,
             active: true,
             propId: prop.id
