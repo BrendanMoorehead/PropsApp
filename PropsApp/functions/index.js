@@ -21,9 +21,6 @@ const {
     checkPropHit,
     checkUserProp
  } = require ("./helperFunctions");
-const { overEvery } = require('lodash');
-const { user } = require('firebase-functions/v1/auth');
-
  admin.initializeApp();
  
  /**
@@ -32,7 +29,7 @@ const { user } = require('firebase-functions/v1/auth');
   * @runs every Tuesday at 5:00AM
   * @expected_load 3 writes / week
   */
- exports.getFutureNFLGames = functions.pubsub.schedule('0 5 * * 2')
+ exports.getOddsAPINFLGames = functions.pubsub.schedule('0 5 * * 2')
   .timeZone('America/New_York')
   .onRun(async () => {
      try {
@@ -41,7 +38,7 @@ const { user } = require('firebase-functions/v1/auth');
          for (const day of gameDays){
             const apiUrl = `https://api.prop-odds.com/beta/games/nfl?date=${day}&tz=America/New_York&api_key=${apiKey}`;
             const dayGames = (await axios.get(apiUrl)).data;
-            await admin.firestore().collection('futureNflGameDays').doc(day).set(dayGames);
+            await admin.firestore().collection('weeklyOddsAPIGames').doc(day).set(dayGames);
          }
          console.log("Games added successfully.");
          return null; // Function executed successfully
@@ -66,7 +63,7 @@ exports.getPlayerReceptions = functions.pubsub.schedule('0 5 * * *')
     try{
         const today = new Date();
         today.setHours(0,0,0,0);
-        const gameDays = await admin.firestore().collection('futureNflGameDays').get();
+        const gameDays = await admin.firestore().collection('weeklyOddsAPIGames').get();
         const apiKey = functions.config().prop_odds.api_key;
 
         for (const dayDoc of gameDays.docs){
@@ -79,17 +76,26 @@ exports.getPlayerReceptions = functions.pubsub.schedule('0 5 * * *')
             for (const game of games){
                 const gameId = game.game_id;
                 const url = `https://api.prop-odds.com/beta/odds/${gameId}/player_receptions_over_under?api_key=${apiKey}`;
-                const response = await axios.get(url);
-                const playerPropsData = response.data;
-                const docRef = admin.firestore().collection('playerProps').doc(gameId.toString());
-                batch.set(docRef, playerPropsData);
-                operationCount++;
-
+                try{
+                    const response = await axios.get(url);
+                    const playerPropsData = response.data;
+                    const docRef = admin.firestore().collection('oddsData').doc(gameId.toString());
+                    if (playerPropsData && Object.keys(playerPropsData).length > 0) {
+                        batch.set(docRef, playerPropsData);
+                        operationCount++;
+                    } else {
+                        console.log(`No matching odds found for game ID: ${gameId}`);
+                    }
+                } catch (apiError) {
+                    console.error(`Error fetching data for game ID: ${gameId}`, apiError);
+                }
+                
                 if (operationCount === batchLimit){
                     await batch.commit();
                     batch = admin.firestore().batch();
                     operationCount = 0;
                 }
+                
                
             }
             console.log("Player reception props retrieved and stored.");
@@ -113,7 +119,7 @@ exports.createPlayerPropsProfile = functions.pubsub.schedule('5 5 * * *')
   .timeZone('America/New_York')
   .onRun(async () => {
     try {
-      const gameDays = await admin.firestore().collection('playerProps').get();
+      const gameDays = await admin.firestore().collection('oddsData').get();
       let batch = admin.firestore().batch();
       const batchLimit = 500;
       let operationCount = 0;
@@ -215,7 +221,7 @@ exports.createPlayerPropsProfile = functions.pubsub.schedule('5 5 * * *')
             const nflGames = response.data.events.filter(game => game.tournament && game.tournament.name === "NFL");
             for (const game of nflGames){
                 uniqueGameIds[game.id] = true;
-                const gameRef = admin.firestore().collection('NFLapiGames').doc(game.id.toString());
+                const gameRef = admin.firestore().collection('weeklyNFLAPIGames').doc(game.id.toString());
                 batch.set(gameRef, game);
                 operationCount++;
                 if (operationCount === batchLimit){
@@ -284,16 +290,9 @@ exports.createPlayerPropsProfile = functions.pubsub.schedule('5 5 * * *')
     }
   });
 
-  exports.removePastGames = functions.pubsub.schedule('59 23 * * 0,1,4')
-  .onRun(async(context)=> {
-    const data = await checkGameState('d1Gh90d1Oc3XxFiXRQhM');
-    console.log(data);
-  });
-
-
 exports.createCompositeNFLGames = functions.pubsub.schedule('6 5 * * 2')
 .onRun(async(context)=> {
-    const futureNFLGamesSnapshot = await admin.firestore().collection('futureNflGameDays').get();
+    const futureNFLGamesSnapshot = await admin.firestore().collection('weeklyOddsAPIGames').get();
     const batchOperations = [];
 
     for (const doc of futureNFLGamesSnapshot.docs){
@@ -301,7 +300,7 @@ exports.createCompositeNFLGames = functions.pubsub.schedule('6 5 * * 2')
         const games = doc.data().games;
         //Each game listed in each day
         for (const game of games){
-            const matchedGameSnapshot = await admin.firestore().collection('NFLapiGames')
+            const matchedGameSnapshot = await admin.firestore().collection('weeklyNFLAPIGames')
                 .where('homeTeam.name', '==', game.home_team)
                 .where('awayTeam.name', '==', game.away_team)
                 .limit(1)
@@ -423,7 +422,6 @@ exports.resolveUserProps = functions.pubsub.schedule('59 23 * * 0,1,4')
   .onRun(async(context)=> {
       const completePlayerProps = await admin.firestore().collection('completePlayerPropProfiles').get();
       const completePropIds = completePlayerProps.docs.map(doc => doc.id);
-
       const usersRef = admin.firestore().collection('users');
       const usersSnapshot = await usersRef.get();
 
@@ -438,11 +436,13 @@ exports.resolveUserProps = functions.pubsub.schedule('59 23 * * 0,1,4')
                 console.log(user.id);
                 const activePicksSnapshot = await activePicksRef.get();
                 for (const pick of activePicksSnapshot.docs){
-                    console.log(pick.propId);
-                    if (completePropIds.includes(pick.data.propId)){
+                    console.log(pick.data());
+                    console.log(completePropIds);
+                    if (completePropIds.includes(pick.data().propId)){
                         //propData = completePlayerProps.doc(pick.propId).get();
                         console.log("MATCH");
-                        checkUserProp(user.id, pick.id);
+                        console.log(pick.data().propId);
+                        checkUserProp(user.id, pick.data().propId, pick.id);
                     }
                 }
             }catch (error){
@@ -458,7 +458,7 @@ exports.resolveUserProps = functions.pubsub.schedule('59 23 * * 0,1,4')
   });
 
 exports.checkPropProfileHit = functions.pubsub.schedule('59 23 * * 0,1,4')
-.onRun(async(context)=> {
+.onRun(async()=> {
     const propProfiles = await admin.firestore().collection('completePlayerPropProfiles').get();
     let batch = admin.firestore().batch();
     const batchLimit = 500;
@@ -485,7 +485,7 @@ exports.checkPropProfileHit = functions.pubsub.schedule('59 23 * * 0,1,4')
 exports.removePastNFLGames = functions.pubsub.schedule('0 0 * * 2')
 .onRun(async() => {
     const nflGames = await admin.firestore().collection('NFLGames').get();
-    const nflAPIGames = await admin.firestore().collection("NFLapiGames").get();
+    const weeklyNFLAPIGames = await admin.firestore().collection("weeklyNFLAPIGames").get();
     let batch = admin.firestore().batch();
     const batchLimit = 500;
     let operationCount = 0;
@@ -501,7 +501,7 @@ exports.removePastNFLGames = functions.pubsub.schedule('0 0 * * 2')
             }
         }
     }
-    for (const game of nflAPIGames.docs){
+    for (const game of weeklyNFLAPIGames.docs){
         const date = new Date(game.data().startTimestamp * 1000);
         if (!isFuture(date)){
             batch.delete(game.ref);

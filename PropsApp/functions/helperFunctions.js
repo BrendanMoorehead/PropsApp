@@ -226,7 +226,7 @@ const retrieveSingleMarket = async (gameID, bookie) => {
     }
     
     try{
-        const docRef = admin.firestore().collection('playerProps').doc(gameID);
+        const docRef = admin.firestore().collection('oddsData').doc(gameID);
         const docSnap = await docRef.get();
 
         if (!docSnap.exists) throw new Error("Document not found for gameID: " + gameID);
@@ -352,20 +352,21 @@ const checkPropHit = async (propProfileDocId, batch) => {
 
 }
 
-const checkUserProp = async (userID, propID) => {
+const checkUserProp = async (userID, propID, userPickId) => {
     try{
     const docRef = admin.firestore().collection('users')
-    .doc(userID).collection("activePicks").doc(propID);
+    .doc(userID).collection("activePicks").doc(userPickId);
     const propRef = admin.firestore().collection("completePlayerPropProfiles");
     const ref = await docRef.get();
     const prop = ref.data();
 
-    //const gameID = prop.prop.nflApiGameId;
-    //const playerID = prop.prop.playerId; 
+    const gameID = prop.nflApiGameId;
+    const playerID = prop.playerId; 
     const pick = prop.pick;
-
+    console.log(`Passed: ${userID}, ${propID}, ${userPickId}`);
     const completedPropRef = admin.firestore().collection('completePlayerPropProfiles').doc(propID);
-    const completeRef = completedPropRef.get();
+    const completeRef = await completedPropRef.get();
+    console.log(completeRef.data());
     const completedProp = completeRef.data();
     const outcome = completedProp.outcome;
     const receptions = completedProp.receptions;
@@ -414,15 +415,14 @@ const updateRecord = async (userID, won) => {
         streak = 0;
     }
     
-    await docRef.doc(userID).set({
-        ...user,
+    await docRef.update({
         wins: wins,
         losses: losses,
         streak: streak,
     });
     }
     catch(e){
-        console.log("winss" + e);
+        console.log("wins" + e);
     }
 }
 
