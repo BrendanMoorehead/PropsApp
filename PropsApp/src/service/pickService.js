@@ -15,7 +15,8 @@ export const setPick = async (pick, prop, uid) => {
         await addDoc(userPicksRef, {
             pick: pick,
             active: true,
-            propId: prop.id
+            propId: prop.id,
+            startTime: prop.startTime
         });
     } catch (error){
         throw new Error("Pick failed to be made: " + error.message);
@@ -39,6 +40,7 @@ export const verifyPick = async (uid, propId) => {
         await addDoc(resolvedPicksRef,{
             prop: userPickRef.data.prop,
             pick: userPickRef.data.prop,
+            startTime: userPickRef.data.startTime,
             active: false,
             hit: false,
         });
