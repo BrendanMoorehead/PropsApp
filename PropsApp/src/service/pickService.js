@@ -16,7 +16,11 @@ export const setPick = async (pick, prop, uid) => {
             pick: pick,
             active: true,
             propId: prop.id,
-            startTime: prop.startTime
+            startTime: prop.startTime,
+            playerName: prop.playerName,
+            market: prop.market,
+            handicap: prop.handicap
+        
         });
     } catch (error){
         throw new Error("Pick failed to be made: " + error.message);

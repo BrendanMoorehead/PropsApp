@@ -154,7 +154,7 @@ exports.createPlayerPropsProfile = functions.pubsub.schedule('5 5 * * *')
                           marketKey: market.market_key,
                           handicap: handicap,
                           gameId: gameId,
-                          startTime: gameStartTime,
+                          startTime: matchedGame.data().start_timestamp,
                           playerId: playerDoc.data.player.id,
                           nflApiGameId: parseInt(matchedGame.data().apiGameId),
                           outcome: 'active',
