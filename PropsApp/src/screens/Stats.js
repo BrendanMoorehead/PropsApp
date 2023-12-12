@@ -1,25 +1,59 @@
-import { View, Text, StyleSheet, ScrollView } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, RefreshControl } from 'react-native'
 import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import ProfilePicture from '../components/ProfilePicture'
 import PickBar from '../components/PickBar'
-import { calculateWinRate } from '../service/statsService'
+
 import {useEffect, useState} from 'react';
+import { getUserStats } from '../service/dataService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 const Stats = () => {
 
-  const [winrate, setWinrate] = useState();
+  const [winrate, setWinrate] = useState('');
+  const [wins, setWins] = useState(null);
+  const [losses, setLosses] = useState(null);
+  const [streak, setStreak] = useState(null);
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+
+    // Place your data fetching logic here
+    await getData();
+
+    setRefreshing(false);
+  }, []);
 
   useEffect(() => {
     getData = async () => {
       const uid = await AsyncStorage.getItem("userToken");
-      
+      const stats = await getUserStats(uid);
+      setWins(stats[0]);
+      setLosses(stats[1]);
+      setStreak(stats[2]);
     }
     getData();
   },[]);
+  useEffect(() => {
+    // This effect runs whenever wins or losses change
+    if (wins !== null && losses !== null) {
+      const calculateWinRate = () => {
+        const totalGames = wins + losses;
+        const winRate = totalGames > 0 ? Number((wins / totalGames * 100).toFixed(0)) : 0;
+        setWinrate(winRate + "%");
+        setStatsLoading(false);
+      };
+  
+      calculateWinRate();
+    }
+  }, [wins, losses]); 
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView>
+      <ScrollView refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }>
       <View style={styles.userinfoWrapper}>
         <ProfilePicture/>
         <View style={styles.userinfoTextWrapper}>
@@ -32,15 +66,15 @@ const Stats = () => {
         <Text style={styles.statsHeader}>Stats</Text>
         <View style={styles.statsDetailsWrapper}>
           <View>
-            <Text style={styles.bigText}>15-9</Text>
+            {statsLoading ? <ActivityIndicator size='large'/> : <Text style={styles.bigText}>{wins}-{losses}</Text>}
             <Text style={styles.subText}>Record</Text>
           </View>
           <View>
-          <Text style={styles.bigText}>62%</Text>
+          {statsLoading ? <ActivityIndicator size='large'/> : <Text style={styles.bigText}>{winrate}</Text>}
             <Text style={styles.subText}>Winrate</Text>
           </View>
           <View>
-          <Text style={styles.bigText}>3</Text>
+          {statsLoading ? <ActivityIndicator size='large'/> : <Text style={styles.bigText}>{streak}</Text>}
             <Text style={styles.subText}>Streak</Text>
           </View>
         </View>
@@ -109,7 +143,8 @@ const styles = StyleSheet.create({
   },
   pickBarContainer : {
     margin: 30
-  }
+  },
+  
 });
 
 export default Stats

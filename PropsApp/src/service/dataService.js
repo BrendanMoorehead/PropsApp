@@ -92,6 +92,24 @@ export const getAllFuturePropProfiles = async () => {
     }
 }
 
+export const getUserStats = async (uid) => {
+    try {
+        const userRef = doc(FIRESTORE_DB, 'users', uid);
+        const userDoc = await getDoc(userRef);
+        if (userDoc.exists()){
+            const wins = userDoc.data().wins;
+            const losses = userDoc.data().losses;
+            const streak = userDoc.data().streak;
+            return [wins, losses, streak];
+        } else {
+            throw new Error("No user found with user ID: " + uid);
+        }
+
+    } catch (error) {
+        throw new Error ("Failed to get user stats: " + error);
+    }
+}
+
 export const getAllUsernames = async () => {
     try{
         const collRef = collection(FIRESTORE_DB, 'usernames');
