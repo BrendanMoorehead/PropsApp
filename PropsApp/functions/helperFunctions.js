@@ -117,6 +117,12 @@ const convertDateFormat = (dateString) => {
     return `${day}/${month}/${year}`;
 }
 
+const getLineName = (line) => {
+    if (!line) return ''; // Check if the string is empty or undefined
+    const words = line.trim().split(' '); // Split the string into an array of words
+    return words[words.length - 1];
+}
+
 /**
  * Gets the date of upcoming Sunday.
  * 
@@ -451,5 +457,6 @@ module.exports = {
     removeZeroHandicaps,
     findPlayerByName, 
     checkPropHit,
-    checkUserProp
+    checkUserProp,
+    getLineName
 }

@@ -1,4 +1,4 @@
-import { View, Text, FlatList, Button, StyleSheet, TouchableOpacity } from 'react-native'
+import { View, Text, FlatList, Button, StyleSheet, TouchableOpacity, Dimensions } from 'react-native'
 import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import {useEffect, useState} from 'react';
@@ -25,12 +25,11 @@ const Swiping = () => {
   const handlePress = async () => {
     console.log("Random Press");
     const randomDoc = docArray[Math.floor(Math.random() * docArray.length)];
-    console.log(randomDoc);
+    console.log("random doc: " + randomDoc);
     setDocument(randomDoc);
   }
   const handleOver = async () => {
     const uid = await AsyncStorage.getItem("userToken");
-    console.log(uid);
     setPick("over", document, uid);
   }
   const handleUnder = async () => {
@@ -41,7 +40,7 @@ const Swiping = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <TouchableOpacity style={styles.button}
+      {/* <TouchableOpacity style={styles.button}
       onPress={handlePress}
       >
       <Text style={[styles.randomText, styles.header]}>Generate Random Prop</Text>
@@ -50,7 +49,7 @@ const Swiping = () => {
         <View style={styles.playerWrapper}>     
         <Text style={styles.text}>{document.data.playerName}</Text>
         <Text style={styles.text}>{document.data.market}</Text>
-        <Text style={styles.text}>O/U {document.data.handicap}</Text>
+        <Text style={styles.text}>O/U {document.data.handicap + " " + document.data.line}</Text>
         </View>
       )}
       <View style={styles.ouWrapper}>
@@ -60,8 +59,10 @@ const Swiping = () => {
         <TouchableOpacity style={styles.overButton} onPress={handleOver}>
         <Text style={[styles.btnText, styles.header]}>Over</Text>
         </TouchableOpacity>
-      </View>
+      </View> */}
   
+        <Card name={"name"}/>
+
     </SafeAreaView>
   )
 }

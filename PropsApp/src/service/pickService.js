@@ -12,14 +12,16 @@ import {doc, collection, setDoc, addDoc, deleteDoc} from 'firebase/firestore'
 export const setPick = async (pick, prop, uid) => {
     const userPicksRef = collection(FIRESTORE_DB, 'users', uid, "activePicks");
     try {
+        console.log('Prop', prop);
         await addDoc(userPicksRef, {
             pick: pick,
             active: true,
             propId: prop.id,
-            startTime: prop.startTime,
-            playerName: prop.playerName,
-            market: prop.market,
-            handicap: prop.handicap
+            startTime: prop.data.startTime,
+            playerName: prop.data.playerName,
+            market: prop.data.marketKey,
+            handicap: prop.data.handicap,
+            line: prop.data.line
         
         });
     } catch (error){

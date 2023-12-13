@@ -2,12 +2,18 @@ import { View, Text, StyleSheet } from 'react-native'
 import React from 'react'
 import ResultCircle from './ResultCircle';
 
-const PickBar = () => {
+const PickBar = ({data}) => {
+
+    const formatMarket = () => {
+        const pick = data.pick.charAt(0).toUpperCase() + data.pick.slice(1);
+        return pick + " " + data.handicap + " " + data.line;
+    }
+
   return (
     <View style={styles.container}>
         <View style={styles.textWrapper}>
-            <Text style={styles.playerName}>Tyreek Hill</Text>
-            <Text style={styles.line}>Over 6.5 Receptions</Text>
+            <Text style={styles.playerName}>{data.playerName}</Text>
+            <Text style={styles.line}>{formatMarket()}</Text>
         </View>
         <ResultCircle/>
     </View>

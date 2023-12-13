@@ -19,7 +19,8 @@ const {
     removeZeroHandicaps,
     findPlayerByName, 
     checkPropHit,
-    checkUserProp
+    checkUserProp,
+    getLineName
  } = require ("./helperFunctions");
  admin.initializeApp();
  
@@ -142,7 +143,7 @@ exports.createPlayerPropsProfile = functions.pubsub.schedule('5 5 * * *')
                         const playerName = getPlayerName(outcome);
                         const handicap = getHandicap(outcome);
                         const playerDoc = await findPlayerByName(playerName);
-            
+                        
                         if (!playerDoc) {
                             console.error(`Player not found: ${playerName}`);
                             // Handle the case when player is not found
@@ -158,6 +159,7 @@ exports.createPlayerPropsProfile = functions.pubsub.schedule('5 5 * * *')
                           playerId: playerDoc.data.player.id,
                           nflApiGameId: parseInt(matchedGame.data().apiGameId),
                           outcome: 'active',
+                          line: getLineName(outcome.description)
                         }
 
                         const docName = `${playerName}_${market.market_key}_${parseInt(matchedGame.data().apiGameId)}`

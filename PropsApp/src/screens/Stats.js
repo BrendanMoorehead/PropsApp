@@ -1,20 +1,24 @@
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, RefreshControl } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, RefreshControl, Dimensions } from 'react-native'
 import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import ProfilePicture from '../components/ProfilePicture'
 import PickBar from '../components/PickBar'
-
 import {useEffect, useState} from 'react';
-import { getUserStats } from '../service/dataService';
+import { getUserStats, getPendingPicks } from '../service/dataService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-const Stats = () => {
 
+const { height } = Dimensions.get('window');
+const Stats = () => {
+  
   const [winrate, setWinrate] = useState('');
   const [wins, setWins] = useState(null);
   const [losses, setLosses] = useState(null);
   const [streak, setStreak] = useState(null);
   const [statsLoading, setStatsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [pendingPicks, setPendingPicks] = useState([]);
+  const [resolvedPicks, setResolvedPicks] = useState([]);
+  const [picksLoading, setPicksLoading] = useState(true);
 
   const onRefresh = React.useCallback(async () => {
     setRefreshing(true);
@@ -32,6 +36,9 @@ const Stats = () => {
       setWins(stats[0]);
       setLosses(stats[1]);
       setStreak(stats[2]);
+      const picks = await getPendingPicks(uid);
+      setPendingPicks(picks);
+      setPicksLoading(false);
     }
     getData();
   },[]);
@@ -52,7 +59,7 @@ const Stats = () => {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#e8e8e8" />
       }>
       <View style={styles.userinfoWrapper}>
         <ProfilePicture/>
@@ -81,13 +88,33 @@ const Stats = () => {
       </View>
 
       <View>
-      <Text style={styles.statsHeader}>Recent Picks</Text>
+      <Text style={styles.statsHeader}>Pending Picks</Text>
         <View style={styles.pickBarContainer}>
-          <PickBar/>
-          <PickBar/>
+          {picksLoading ? <ActivityIndicator size='large'/> :
+          pendingPicks.length > 0 ? (
+            pendingPicks.map((pick) => (
+              <PickBar key={pick.id} data={pick.data}/>
+            ))
+          ) : (
+            <Text>No picks found.</Text>
+          )}
+        </View>
+      </View>
+      <View>
+      <Text style={styles.statsHeader}>Resolved Picks</Text>
+        <View style={styles.pickBarContainer}>
+        {picksLoading ? <ActivityIndicator size='large'/> :
+          resolvedPicks.length > 0 ? (
+            resolvedPicks.map((pick) => (
+              <PickBar key={pick.id} data={pick.data}/>
+            ))
+          ) : (
+            <Text style={styles.altText}>No resolved picks.</Text>
+          )}
         </View>
       </View>
       </ScrollView>
+    
     </SafeAreaView>
   )
 }
@@ -141,8 +168,19 @@ const styles = StyleSheet.create({
     color: '#e8e8e8',
     fontSize: 14,
   },
+  altText: {
+    color: '#e8e8e8',
+    fontSize: 14,
+  },
   pickBarContainer : {
-    margin: 30
+    margin: 30,
+  },
+  gradient: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 100, // Adjust the height to control the fade area
   },
   
 });

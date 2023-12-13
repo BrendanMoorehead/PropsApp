@@ -46,7 +46,8 @@ const userStack = ({user}) => {
           },
           tabBarStyle: {
             backgroundColor: '#121212',
-            margin: 16,
+            marginLeft: 16,
+            marginRight: 16,
             marginBottom: 44,
             borderRadius: 10,
             paddingBottom: 10,
