@@ -1,14 +1,18 @@
-import { View, Text, FlatList, Button, StyleSheet, TouchableOpacity, Dimensions } from 'react-native'
+import { View, Text, FlatList, Button, StyleSheet, TouchableOpacity, Dimensions, Animated } from 'react-native'
 import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import {useEffect, useState} from 'react';
 import { setPick } from '../service/pickService';
 import Card from '../components/Card';
+
 import { FIRESTORE_DB } from '../config/firebaseConfig';
 import { collection, doc, getDoc } from 'firebase/firestore';
 import { retrieveSingleMarket, getPropProfilesByGameID, getAllFuturePropProfiles } from '../service/dataService';
 import { getPlayerName, formatMarketKey, getHandicap } from '../service/parsingService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+
+
 const Swiping = () => {
 
   const [document, setDocument] = useState(null);
@@ -60,9 +64,7 @@ const Swiping = () => {
         <Text style={[styles.btnText, styles.header]}>Over</Text>
         </TouchableOpacity>
       </View> */}
-  
-        <Card name={"name"}/>
-
+        <Card name={"Tyreek Hill"} prop={"6.5 Receptions"}/>
     </SafeAreaView>
   )
 }
@@ -71,7 +73,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    backgroundColor: '#1a1a1a'
+    backgroundColor: '#1a1a1a',
+    justifyContent: 'center'
   },
   button: {
     marginTop: 20,

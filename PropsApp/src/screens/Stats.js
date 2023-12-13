@@ -114,7 +114,6 @@ const Stats = () => {
         </View>
       </View>
       </ScrollView>
-    
     </SafeAreaView>
   )
 }
@@ -175,14 +174,7 @@ const styles = StyleSheet.create({
   pickBarContainer : {
     margin: 30,
   },
-  gradient: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: 100, // Adjust the height to control the fade area
-  },
-  
+
 });
 
 export default Stats
