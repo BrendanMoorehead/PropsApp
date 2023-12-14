@@ -2,7 +2,7 @@ import { View, Text, StyleSheet } from 'react-native'
 import React from 'react'
 import ResultCircle from './ResultCircle';
 
-const PickBar = ({data}) => {
+const PickBar = ({data, color}) => {
 
     const formatMarket = () => {
         const pick = data.pick.charAt(0).toUpperCase() + data.pick.slice(1);
@@ -15,7 +15,7 @@ const PickBar = ({data}) => {
             <Text style={styles.playerName}>{data.playerName}</Text>
             <Text style={styles.line}>{formatMarket()}</Text>
         </View>
-        <ResultCircle/>
+       <ResultCircle color={color}/>
     </View>
   )
 }

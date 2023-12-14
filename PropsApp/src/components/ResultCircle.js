@@ -1,10 +1,9 @@
 import { View, Text, StyleSheet } from 'react-native'
 import React from 'react'
 
-const ResultCircle = () => {
+const ResultCircle = ({color}) => {
   return (
-    <View style={styles.circle}>
-    </View>
+    <View style={[styles.circle, { backgroundColor: color }]} />
   )
 }
 const styles = StyleSheet.create({
@@ -12,7 +11,6 @@ const styles = StyleSheet.create({
         borderRadius: 50,
         width: 50,
         height: 50,
-        backgroundColor: '#e8e8e8'
     }
 });
 

@@ -125,6 +125,22 @@ export const getPendingPicks = async (uid) => {
         throw new Error ("Failed to get user stats: " + error);
     }
 }
+export const getResolvedPicks = async (uid) => {
+    try {
+        const picksRef = collection(FIRESTORE_DB, 'users', uid, 'resolvedPicks');
+        const q = query(picksRef);
+        const querySnapshot = await getDocs(q);
+        
+        const documents = [];
+        querySnapshot.forEach(doc =>{
+            documents.push({id: doc.id, data: doc.data()});
+        });
+        return documents;
+
+    } catch (error) {
+        throw new Error ("Failed to get user stats: " + error);
+    }
+}
 
 export const getAllUsernames = async () => {
     try{

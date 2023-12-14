@@ -1,4 +1,4 @@
-import { View, Text, SafeAreaView, FlatList, ActivityIndicator, StyleSheet, Button } from 'react-native'
+import { View, Text, SafeAreaView, FlatList, ActivityIndicator, StyleSheet, Button, TouchableOpacity } from 'react-native'
 import {useState, useEffect} from 'react'
 import React from 'react'
 import { getFriendList, acceptFriendRequest, removeFriend } from '../service/friendService'
@@ -39,8 +39,10 @@ const FriendList = () => {
           keyExtractor={(item) => item.id}
           renderItem={({item}) => (
             <View style={styles.itemContainer}>
+              <TouchableOpacity>
               <Text style={styles.textName}>{item.data.friendUsername}</Text>
               <Button title="Remove" onPress={() => handleRemoveFriend(item.id)}/>
+              </TouchableOpacity>
             </View>
           )}
         ></FlatList>

@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import ProfilePicture from '../components/ProfilePicture'
 import PickBar from '../components/PickBar'
 import {useEffect, useState} from 'react';
-import { getUserStats, getPendingPicks } from '../service/dataService';
+import { getUserStats, getPendingPicks, getResolvedPicks } from '../service/dataService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { height } = Dimensions.get('window');
@@ -36,8 +36,10 @@ const Stats = () => {
       setWins(stats[0]);
       setLosses(stats[1]);
       setStreak(stats[2]);
-      const picks = await getPendingPicks(uid);
-      setPendingPicks(picks);
+      const pendingPicks = await getPendingPicks(uid);
+      setPendingPicks(pendingPicks);
+      const resolvedPicks = await getResolvedPicks(uid);
+      setResolvedPicks(resolvedPicks);
       setPicksLoading(false);
     }
     getData();
@@ -93,7 +95,7 @@ const Stats = () => {
           {picksLoading ? <ActivityIndicator size='large'/> :
           pendingPicks.length > 0 ? (
             pendingPicks.map((pick) => (
-              <PickBar key={pick.id} data={pick.data}/>
+              <PickBar key={pick.id} data={pick.data} color="#cccccc"/>
             ))
           ) : (
             <Text>No picks found.</Text>
@@ -106,7 +108,7 @@ const Stats = () => {
         {picksLoading ? <ActivityIndicator size='large'/> :
           resolvedPicks.length > 0 ? (
             resolvedPicks.map((pick) => (
-              <PickBar key={pick.id} data={pick.data}/>
+              <PickBar key={pick.id} data={pick.data} color={pick.data.outcome == pick.data.pick ? "#42f578" : "#f54242"}/>
             ))
           ) : (
             <Text style={styles.altText}>No resolved picks.</Text>
