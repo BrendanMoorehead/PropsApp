@@ -12,6 +12,7 @@ import FriendList from './FriendList'
 import FriendSearch from './FriendSearch'
 import FriendRequests from './FriendRequests'
 import { FriendsProvider } from '../providers/FriendsProvider'
+import { TabBarIndicator } from 'react-native-tab-view'
 
 
 
@@ -29,7 +30,17 @@ const Friends = ({route}) => {
   return (
     <SafeAreaView style={{flex:1, backgroundColor:"#1a1a1a"}}>
       <FriendsProvider>
-        <Tab.Navigator>
+        <Tab.Navigator
+        screenOptions={{
+          tabBarStyle: { backgroundColor: '#1a1a1a' },
+          tabBarLabelStyle: {
+            color: '#e8e8e8', // Set your desired text color
+            fontWeight: 'bold' // Set your desired font weight (e.g., 'bold')
+          },
+          tabBarIndicatorStyle: {
+            backgroundColor: "#35fccb"
+          }
+        }}>
           <Tab.Screen name="Friend List" component={FriendList}/>
           <Tab.Screen name="Add Friends" component={FriendSearch} initialParams={{user:user}}/>
           <Tab.Screen name="Requests" component={FriendRequests}/>

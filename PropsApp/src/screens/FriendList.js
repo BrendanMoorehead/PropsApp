@@ -20,20 +20,20 @@ const FriendList = () => {
     
     if(isLoading){
       return (
-        <SafeAreaView style={{flex:1, justifyContent:'center', alignItems:"center"}}>
+        <SafeAreaView style={{flex:1, justifyContent:'center', alignItems:"center", backgroundColor:"#1a1a1a" }}>
         <ActivityIndicator size="large" color="black"/>
         </SafeAreaView>
       )
     }
     if (friendsList.length == 0){
       return (
-      <SafeAreaView style={{flex:1, justifyContent:'center', alignItems:"center"}}>
-        <Text>No friends found. Add some on the Add Friends Tab!</Text>
+      <SafeAreaView style={{flex:1, justifyContent:'center', alignItems:"center", backgroundColor:"#1a1a1a" }}>
+        <Text style={styles.emptyText}>No friends found. Add some on the Add Friends Tab!</Text>
       </SafeAreaView>
       )
     }
     return (
-      <View style={{flex:1, marginHorizontal: 20, marginVertical: 20, }}>
+      <View style={{flex:1, marginHorizontal: 20, marginVertical: 20, backgroundColor:"#1a1a1a" }}>
        <FlatList
           data={friendsList}
           keyExtractor={(item) => item.id}
@@ -72,6 +72,13 @@ const FriendList = () => {
       fontSize:17,
       marginLeft:10,
       fontWeight:'600'
+    }, 
+    emptyText: {
+      color: "#e8e8e8",
+      fontWeight: 'bold',
+      width: '60%',
+      textAlign: 'center',
+      fontSize:20
     }
   });
 

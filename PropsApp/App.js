@@ -3,6 +3,7 @@ import RootNavigation from './src/navigation';
 import { useEffect, useState } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { FIREBASE_AUTH } from './src/config/firebaseConfig';
+import { PickBadgeValueProvider } from './src/contexts/PickBadgeContext';
 
 const App = () => {
   const [initializing, setInitializing] = useState(true);
@@ -17,7 +18,9 @@ const App = () => {
   },[]);
   if (initializing) return null;
   return (
+    <PickBadgeValueProvider>
      <RootNavigation user={user}/>
+    </PickBadgeValueProvider>
   );
 }
 export default App;

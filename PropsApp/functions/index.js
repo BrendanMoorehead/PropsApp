@@ -20,7 +20,8 @@ const {
     findPlayerByName, 
     checkPropHit,
     checkUserProp,
-    getLineName
+    getLineName,
+    determinePlayerPicks
  } = require ("./helperFunctions");
  admin.initializeApp();
  
@@ -128,7 +129,6 @@ exports.createPlayerPropsProfile = functions.pubsub.schedule('5 5 * * *')
       for (const dayDoc of gameDays.docs) {
         try {
           const gameId = dayDoc.id;
-          const gameStartTime = await getTimestampByGameID(gameId);
           const matchedGameSnapshot = await admin.firestore().collection('NFLGames')
                 .where('game_id', '==', gameId)
                 .limit(1)
@@ -180,15 +180,14 @@ exports.createPlayerPropsProfile = functions.pubsub.schedule('5 5 * * *')
                 }
             }   
         } catch (error) {
-          console.error("Couldn't create profiles for game: " + dayDoc.id, error);
-          return;
+          throw new Error("Couldn't create profiles for game: " + dayDoc.id, error);
         }
       }
       if (operationCount > 0){
           await batch.commit();
       }
     } catch (error) {
-      console.error("Profile creation failed.", error);
+      throw new Error ("potential batch error " + error);
     }
   });
 
@@ -461,7 +460,7 @@ exports.resolveUserProps = functions.pubsub.schedule('59 23 * * 0,1,4')
 
 exports.checkPropProfileHit = functions.pubsub.schedule('59 23 * * 0,1,4')
 .onRun(async()=> {
-    const propProfiles = await admin.firestore().collection('completePlayerPropProfiles').get();
+    const propProfiles = await admin.firestore().collection('pastPlayerPropProfiles').get();
     let batch = admin.firestore().batch();
     const batchLimit = 500;
     let operationCount = 0;
@@ -525,3 +524,36 @@ exports.removePastNFLGames = functions.pubsub.schedule('0 0 * * 2')
     }
 });
 
+exports.assignDailyPicks = functions.pubsub.schedule('5 5 * * *')
+  .timeZone('America/New_York')
+  .onRun(async () => {
+    try {
+        let batch = admin.firestore().batch();
+        const batchLimit = 500;
+        let operationCount = 0;
+        const users = await admin.firestore().collection('users').get();
+
+        for (const user of users.docs){
+            console.log("uID: " + user.id);
+            const picks = await determinePlayerPicks();
+            if (picks.length > 0){
+                console.log(picks.length);
+                for (const pick of picks){
+                    const newPick = admin.firestore().collection('users').doc(user.id).collection('dailyPicks').doc();
+                    batch.set(newPick,pick);
+                    operationCount++;
+                    if (operationCount >= batchLimit){
+                        await batch.commit();
+                        batch = admin.firestore().batch();
+                        operationCount = 0;
+                    }
+                };
+            }
+        }
+        if (operationCount > 0){
+            await batch.commit();
+        }
+    } catch (error) {
+        throw new Error("Failed to get users: " + error);
+    }
+  });

@@ -12,6 +12,7 @@ import {doc, collection, setDoc, addDoc, deleteDoc} from 'firebase/firestore'
 export const setPick = async (pick, prop, uid) => {
     const userPicksRef = collection(FIRESTORE_DB, 'users', uid, "activePicks");
     try {
+        const currentDate = new Date();
         console.log('Prop', prop);
         await addDoc(userPicksRef, {
             pick: pick,
@@ -21,8 +22,8 @@ export const setPick = async (pick, prop, uid) => {
             playerName: prop.data.playerName,
             market: prop.data.marketKey,
             handicap: prop.data.handicap,
-            line: prop.data.line
-        
+            line: prop.data.line,
+            pickMade: currentDate
         });
     } catch (error){
         throw new Error("Pick failed to be made: " + error.message);

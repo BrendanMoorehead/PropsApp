@@ -67,9 +67,10 @@ const FriendSearch = ({route}) => {
   }
 
   return (
-    <View style={{flex:1, marginHorizontal: 20, marginVertical: 20}}>
+    <View style={{flex:1, backgroundColor:"#1a1a1a"}}>
       <TextInput 
       placeholder="Search" 
+      placeholderTextColor={"#e8e8e8"}
       clearButtonMode='always' 
       style={styles.searchBox}
       autoCapitalize="none"
@@ -98,6 +99,7 @@ const FriendSearch = ({route}) => {
           </View>
           </TouchableOpacity>
         )}
+        showsVerticalScrollIndicator={false}
       ></FlatList>
     </View>
   )
@@ -108,7 +110,9 @@ const styles = StyleSheet.create({
     paddingVertical:20, 
     borderColor:'#ccc',
     borderWidth:1, 
-    borderRadius:8
+    borderRadius:8,
+    marginBottom: 8,
+    backgroundColor: '#121212',
   },
   itemContainer:{
     flexDirection:'row', 
@@ -146,7 +150,11 @@ const styles = StyleSheet.create({
     flex: 1,
      flexDirection: 'row',
      justifyContent: 'space-between',
-     padding: 30
+     padding: 30, 
+     alignContent: 'center'
+  },
+  container: {
+    backgroundColor:"#1a1a1a"
   }
 });
 

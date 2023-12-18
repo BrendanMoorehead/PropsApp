@@ -64,11 +64,8 @@ const Stats = () => {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#e8e8e8" />
       }>
       <View style={styles.userinfoWrapper}>
-        <ProfilePicture/>
-        <View style={styles.userinfoTextWrapper}>
+        <ProfilePicture/> 
           <Text style={styles.username}>Moorehead</Text>
-          <Text style={styles.level}>Level 4</Text>
-        </View>
       </View>
 
       <View style={styles.statsWrapper}>
@@ -124,10 +121,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#1a1a1a',
+    paddingBottom: 50
   },
   userinfoWrapper: {
-    display: 'flex',
-    flexDirection: 'row',
+    flex: 1,
+    flexDirection: 'column',
+    alignItems:'center',
+    justifyContent: 'center',
+    paddingBottom: 20
   },
   userinfoTextWrapper: {
     flex: 1,
@@ -137,7 +138,7 @@ const styles = StyleSheet.create({
   username: {
     fontWeight: 'bold',
     color: '#e8e8e8',
-    fontSize: 24
+    fontSize: 28
   },
   level: {
     color: '#e8e8e8',

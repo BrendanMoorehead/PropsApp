@@ -1,5 +1,5 @@
 import { FIRESTORE_DB } from "../config/firebaseConfig";
-import { doc, getDoc, query, where, collection, getDocs } from 'firebase/firestore';
+import { doc, getDoc, query, where, collection, getDocs, orderBy } from 'firebase/firestore';
 
 /**
  * Retrives the data for a single market.
@@ -91,6 +91,22 @@ export const getAllFuturePropProfiles = async () => {
         throw new Error("Failed to retrieve prop profiles");
     }
 }
+export const getDailyPicks = async (uid) => {
+    try{
+        const collRef = collection(FIRESTORE_DB, 'users', uid, 'dailyPicks');
+        const q = query(collRef);
+        const querySnapshot = await getDocs(q);
+
+        const documents = [];
+
+        querySnapshot.forEach(doc =>{
+            documents.push({id: doc.id, data: doc.data()});
+        });
+        return documents;
+    } catch (error){
+        throw new Error("Failed to get daily user picks: " + error);
+    }
+}
 
 export const getUserStats = async (uid) => {
     try {
@@ -109,10 +125,32 @@ export const getUserStats = async (uid) => {
         throw new Error ("Failed to get user stats: " + error);
     }
 }
+
+export const getPlayerDetails = async (playerId) => {
+    try {
+        const playersCollectionRef = collection(FIRESTORE_DB, 'nflPlayers');
+        const q = query(playersCollectionRef, where("player.id", "==", playerId));
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty){
+            const playerDoc = querySnapshot.docs[0]; // Assuming there's only one matching document
+            const data = playerDoc.data();
+            const name = data.player.name;
+            const team = data.player.team.nameCode;
+            const number = data.player.shirtNumber;
+            const position = data.player.position;
+            return [name, team, number, position];
+        } else {
+            throw new Error("No user found with user ID: " + playerId);
+        }
+
+    } catch (error) {
+        throw new Error ("Failed to get user stats: " + error);
+    }
+}
 export const getPendingPicks = async (uid) => {
     try {
         const picksRef = collection(FIRESTORE_DB, 'users', uid, 'activePicks');
-        const q = query(picksRef);
+        const q = query(picksRef, orderBy('pickMade', 'desc'));
         const querySnapshot = await getDocs(q);
         
         const documents = [];
@@ -127,8 +165,8 @@ export const getPendingPicks = async (uid) => {
 }
 export const getResolvedPicks = async (uid) => {
     try {
-        const picksRef = collection(FIRESTORE_DB, 'users', uid, 'resolvedPicks');
-        const q = query(picksRef);
+        const picksRef = collection(FIRESTORE_DB, 'users', uid, 'completePicks');
+        const q = query(picksRef, orderBy('pickMade', 'desc'));
         const querySnapshot = await getDocs(q);
         
         const documents = [];

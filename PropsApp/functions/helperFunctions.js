@@ -385,7 +385,7 @@ const checkUserProp = async (userID, propID, userPickId) => {
     }
 
     const completedUserPropRef = admin.firestore().collection('users').doc(userID).collection("completePicks");
-    const docName = `${gameID}_${playerID}`;
+    const docName = `${prop.propId}`;
     await completedUserPropRef.doc(docName).set({
         ...prop,
         won: won,
@@ -440,6 +440,27 @@ const createScore = async (score, userID) => {
     });
 }
 
+const determinePlayerPicks = async () => {
+    let picks = [];
+    const limit = 3;
+    const profiles = await admin.firestore().collection("futurePlayerPropProfiles").get();
+    if (!profiles.empty){
+        //Convert documents to an array
+        let docs = profiles.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        picks = shuffleArray(docs).slice(0,limit);
+    }
+    //picks.forEach(pick => console.log("Pick: ", pick));
+    return picks;
+}
+
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+    }
+    return array;
+  }
+
 module.exports = {
     isFuture, 
     checkGameState, 
@@ -458,5 +479,6 @@ module.exports = {
     findPlayerByName, 
     checkPropHit,
     checkUserProp,
-    getLineName
+    getLineName,
+    determinePlayerPicks
 }
