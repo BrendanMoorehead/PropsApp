@@ -108,6 +108,12 @@ export const getDailyPicks = async (uid) => {
     }
 }
 
+export const countPicks = async (uid) => {
+    const countRef = collection(FIRESTORE_DB, 'users', uid, 'dailyPicks');
+    const doc = await getDocs(countRef);
+    return doc.size;
+}
+
 export const getUserStats = async (uid) => {
     try {
         const userRef = doc(FIRESTORE_DB, 'users', uid);

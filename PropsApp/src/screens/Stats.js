@@ -19,6 +19,7 @@ const Stats = () => {
   const [pendingPicks, setPendingPicks] = useState([]);
   const [resolvedPicks, setResolvedPicks] = useState([]);
   const [picksLoading, setPicksLoading] = useState(true);
+  const [username, setUsername] = useState('');
 
   const onRefresh = React.useCallback(async () => {
     setRefreshing(true);
@@ -57,7 +58,20 @@ const Stats = () => {
       calculateWinRate();
     }
   }, [wins, losses]); 
-
+  useEffect(() =>{
+    const getUsername = async () => {
+      try {
+        const storedUsername = await AsyncStorage.getItem("username");
+        if (storedUsername !== null){
+          setUsername(storedUsername);
+        }
+      }
+      catch (error){
+        console.error("Unable to get username: ",error);
+      }
+    }
+    getUsername();
+  },[]);
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView refreshControl={
@@ -65,7 +79,7 @@ const Stats = () => {
       }>
       <View style={styles.userinfoWrapper}>
         <ProfilePicture/> 
-          <Text style={styles.username}>Moorehead</Text>
+          <Text style={styles.username}>{username}</Text>
       </View>
 
       <View style={styles.statsWrapper}>

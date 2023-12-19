@@ -162,7 +162,7 @@ exports.createPlayerPropsProfile = functions.pubsub.schedule('5 5 * * *')
                           line: getLineName(outcome.description)
                         }
 
-                        const docName = `${playerName}_${market.market_key}_${parseInt(matchedGame.data().apiGameId)}`
+                        const docName = `${playerName}_${market.market_key}_${matchedGame.data().start_timestamp}`
                         docRef = admin.firestore().collection('futurePlayerPropProfiles').doc(docName);
                         batch.set(docRef, profile);
                         operationCount++;
@@ -434,14 +434,11 @@ exports.resolveUserProps = functions.pubsub.schedule('59 23 * * 0,1,4')
             try{
 
                 const activePicksRef = usersRef.doc(user.id).collection('activePicks');
-                console.log(user.id);
                 const activePicksSnapshot = await activePicksRef.get();
                 for (const pick of activePicksSnapshot.docs){
-                    console.log(pick.data());
-                    console.log(completePropIds);
                     if (completePropIds.includes(pick.data().propId)){
                         //propData = completePlayerProps.doc(pick.propId).get();
-                        console.log("MATCH");
+                        console.log("MATCH:");
                         console.log(pick.data().propId);
                         checkUserProp(user.id, pick.data().propId, pick.id);
                     }

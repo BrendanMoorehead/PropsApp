@@ -4,9 +4,10 @@ import {LinearGradient} from 'expo-linear-gradient'
 import { Animated } from 'react-native';
 import { useRef } from 'react';
 import { useEffect } from 'react';
-import { setPick } from '../service/pickService';
+import { setPick, deletePick } from '../service/pickService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 const {width, height} = Dimensions.get('screen');
+
 const Card = ({name = "blank", prop = "blank", line, image, onUnmount, document}) => {
 
     const slideAnim = useRef(new Animated.Value(0)).current; // Using useRef for the animated value
@@ -78,10 +79,12 @@ const Card = ({name = "blank", prop = "blank", line, image, onUnmount, document}
     const handleOver = async () => {
         const uid = await AsyncStorage.getItem("userToken");
         setPick("over", document, uid);
+        await deletePick(document.id, uid);
       }
       const handleUnder = async () => {
         const uid = await AsyncStorage.getItem("userToken");
         setPick("under", document, uid);
+        await deletePick(document.id, uid);
       }
   return (
     <Animated.View style={combinedStyles}>

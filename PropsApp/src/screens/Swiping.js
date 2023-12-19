@@ -1,4 +1,4 @@
-import { View, StyleSheet, TouchableOpacity, Modal } from 'react-native'
+import { View, StyleSheet, TouchableOpacity, Modal, Text } from 'react-native'
 import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import {useEffect, useState} from 'react';
@@ -60,6 +60,11 @@ const Swiping = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      {cards.length == 0 && 
+        <View style={styles.emptyArrContainer}>
+        <Text style={styles.emptyArrText}>Check back tomorrow for more picks!</Text>
+        </View>
+      }
       {currentCard &&
        <ModalPopup visible={visible}>
 
@@ -153,6 +158,18 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#1a1a1a'
   },
+  emptyArrContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  emptyArrText: {
+    color: '#e8e8e8',
+    fontSize: 20,
+    fontWeight: 'bold',
+    width: "60%",
+    textAlign: 'center'
+  }
 })
 
 export default Swiping

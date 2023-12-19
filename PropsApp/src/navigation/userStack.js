@@ -1,6 +1,6 @@
 //When user is logged in
 import { View, Text, StyleSheet } from 'react-native'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { NavigationContainer } from '@react-navigation/native'
 import { BottomTabBar, createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import Ionicons from 'react-native-vector-icons/Ionicons'
@@ -13,13 +13,23 @@ import StatsScreen from '../screens/Stats'
 import SwipingScreen from '../screens/Swiping'
 
 import { usePickBadgeValue } from '../contexts/PickBadgeContext'
-
-
+import { countPicks } from '../service/dataService'
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Tab = createBottomTabNavigator();
 
 const userStack = ({user}) => {
-  const {pickBadgeValue} = usePickBadgeValue();
+  const {pickBadgeValue, setPickBadgeValue} = usePickBadgeValue();
+
+  useEffect(() => {
+    getData = async () => {
+      const uid = await AsyncStorage.getItem("userToken");
+      const pickCount = await countPicks(uid);
+      setPickBadgeValue(pickCount);
+    }
+    getData();
+  }, []);
+
   return (
     <View style={{flex: 1}}>
     <NavigationContainer>

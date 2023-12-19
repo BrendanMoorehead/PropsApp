@@ -13,8 +13,8 @@ export const setPick = async (pick, prop, uid) => {
     const userPicksRef = collection(FIRESTORE_DB, 'users', uid, "activePicks");
     try {
         const currentDate = new Date();
-        console.log('Prop', prop);
-        await addDoc(userPicksRef, {
+        const newPickRef = doc(userPicksRef, `${prop.data.playerName}_${market.data.marketKey}_${prop.data.startTime}`);
+        await addDoc(newPickRef, {
             pick: pick,
             active: true,
             propId: prop.id,
@@ -23,10 +23,19 @@ export const setPick = async (pick, prop, uid) => {
             market: prop.data.marketKey,
             handicap: prop.data.handicap,
             line: prop.data.line,
-            pickMade: currentDate
+            pickMade: currentDate,
         });
     } catch (error){
         throw new Error("Pick failed to be made: " + error.message);
+    }
+}
+
+export const deletePick = async(pickId, uid) => {
+    const userPickRef = doc(FIRESTORE_DB, 'users', uid, "dailyPicks", pickId);
+    try{ 
+        await deleteDoc(userPickRef);
+    } catch (error){
+        throw new Error("Failed to remove pick from user's daily picks collection: " + error);
     }
 }
 
