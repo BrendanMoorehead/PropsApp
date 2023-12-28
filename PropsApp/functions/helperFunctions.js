@@ -446,11 +446,13 @@ const determinePlayerPicks = async (uid) => {
     try{
         const profiles = await admin.firestore().collection("futurePlayerPropProfiles").get();
         const currDailyPicks = await admin.firestore().collection("users").doc(uid).collection("dailyPicks").get();
-
+        const currActivePicks = await admin.firestore().collection("users").doc(uid).collection("activePicks").get();
         if (!profiles.empty){
             //Convert documents to an array
             let docs = profiles.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             let currPicksDocs = currDailyPicks.docs.map(doc => ({id: doc.id, ...doc.data()}));
+            let activePicksDocs = currActivePicks.docs.map(doc => ({id: doc.id, ...doc.data()}));
+            currPicksDocs = currPicksDocs.concat(activePicksDocs);
             //Get currPicksDocs ids
             let currPicksIds = currPicksDocs.map(doc => doc.id);
             //Filter out existing props in the docs
