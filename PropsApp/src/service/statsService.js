@@ -1,6 +1,8 @@
-export const calculateWinRate = (wins, losses) => {
-    return ((wins / (wins + losses) * 10).toFixed(0)) + "%";
-}
+
+export const calculateWinRate = (wins, losses) => 
+(((wins / (wins + losses) * 10).toFixed(0)) + "%");
+
+
 export const getUserWins = async () => {
     try{
         const collRef = collection(FIRESTORE_DB, 'futurePlayerPropProfiles');

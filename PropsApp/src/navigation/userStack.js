@@ -13,7 +13,7 @@ import StatsScreen from '../screens/Stats'
 import SwipingScreen from '../screens/Swiping'
 
 import { usePickBadgeValue } from '../contexts/PickBadgeContext'
-import { countPicks } from '../service/dataService'
+import { sumUserActivePicks } from '../service/userPicksService'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Tab = createBottomTabNavigator();
@@ -24,7 +24,7 @@ const userStack = ({user}) => {
   useEffect(() => {
     getData = async () => {
       const uid = await AsyncStorage.getItem("userToken");
-      const pickCount = await countPicks(uid);
+      const pickCount = await sumUserActivePicks(uid);
       setPickBadgeValue(pickCount);
     }
     getData();

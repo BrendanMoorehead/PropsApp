@@ -4,24 +4,20 @@
  const axios = require('axios');
 const { 
     isFuture, 
-    checkGameState, 
     delay, 
-    getTimestampByGameID, 
     convertDateFormat,
     getNextThursday,
     getNextSunday,
     getNextMonday,
     getHandicap,
     getPlayerName,
-    formatMarketKey,
     retrieveSingleMarket,
-    removeDuplicateOutcomes,
-    removeZeroHandicaps,
     findPlayerByName, 
     checkPropHit,
     checkUserProp,
     getLineName,
-    determinePlayerPicks
+    determinePlayerPicks,
+    bulkUpdateRecord
  } = require ("./helperFunctions");
  admin.initializeApp();
  
@@ -432,17 +428,21 @@ exports.resolveUserProps = functions.pubsub.schedule('59 23 * * 0,1,4')
     try{
         for (const user of usersSnapshot.docs){
             try{
-
+                const addWins = 0;
+                const addLosses = 0;
                 const activePicksRef = usersRef.doc(user.id).collection('activePicks');
                 const activePicksSnapshot = await activePicksRef.get();
                 for (const pick of activePicksSnapshot.docs){
-                    if (completePropIds.includes(pick.data().propId)){
+                    if (completePropIds.includes(pick.id)){
                         //propData = completePlayerProps.doc(pick.propId).get();
                         console.log("MATCH:");
                         console.log(pick.data().propId);
-                        checkUserProp(user.id, pick.data().propId, pick.id);
+                        //const matchProp = await admin.firestore().collection('completemPlayerPropProfiles').doc(pick.id).get();
+                        checkUserProp(user.id, pick.id, pick.id) ? addWins++ : addLosses++;
                     }
                 }
+                //Update user record
+                bulkUpdateRecord(user.uid, addWins, addLosses);
             }catch (error){
                 //Move to next user if there are no active picks
                 console.log("catch: "+error);

@@ -1,14 +1,11 @@
 
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, RefreshControl, Dimensions } from 'react-native'
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native'
 import React from 'react'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import ProfilePicture from '../components/ProfilePicture'
-import PickBar from '../components/PickBar'
 import {useEffect, useState} from 'react';
-import { getUserStats, getPendingPicks } from '../service/dataService';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getUserStats } from '../service/userPicksService'
 
-const StatsModal = ({uid, username}) => {
+
+const StatsModal = ({uid}) => {
 
     const [winrate, setWinrate] = useState('');
     const [wins, setWins] = useState(null);

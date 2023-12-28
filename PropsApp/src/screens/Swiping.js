@@ -3,7 +3,8 @@ import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import {useEffect, useState} from 'react';
 import Card from '../components/Card';
-import {getAllFuturePropProfiles, getDailyPicks } from '../service/dataService';
+import {getAllFuturePropProfiles } from '../service/dataService';
+import { getUsersDailyPicks } from '../service/userPicksService';
 import PlayerDetails from '../components/PlayerDetails';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { usePickBadgeValue } from '../contexts/PickBadgeContext';
@@ -44,7 +45,7 @@ const Swiping = () => {
   useEffect(() => {
     getData = async () => {
       const uid = await AsyncStorage.getItem("userToken");
-      const data = await getDailyPicks(uid);
+      const data = await getUsersDailyPicks(uid);
       setCards(data);
       setPickBadgeValue(data.length);
     }

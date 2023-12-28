@@ -4,7 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import ProfilePicture from '../components/ProfilePicture'
 import PickBar from '../components/PickBar'
 import {useEffect, useState} from 'react';
-import { getUserStats, getPendingPicks, getResolvedPicks } from '../service/dataService';
+import { getUsersPendingPicks, getUsersResolvedPicks } from '../service/userPicksService'
+import { getUserStats } from '../service/userPicksService'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { height } = Dimensions.get('window');
@@ -37,9 +38,9 @@ const Stats = () => {
       setWins(stats[0]);
       setLosses(stats[1]);
       setStreak(stats[2]);
-      const pendingPicks = await getPendingPicks(uid);
+      const pendingPicks = await getUsersPendingPicks(uid);
       setPendingPicks(pendingPicks);
-      const resolvedPicks = await getResolvedPicks(uid);
+      const resolvedPicks = await getUsersResolvedPicks(uid);
       setResolvedPicks(resolvedPicks);
       setPicksLoading(false);
     }

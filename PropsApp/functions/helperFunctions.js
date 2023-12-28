@@ -9,6 +9,7 @@
  * @param {*} dateString the date to be checked against the current date.
  * @returns True if the date is in the future, false otherwise.
  */
+//TODO: Move to a more general helper functions file.
  const isFuture = (dateString) => {
     const inputDate = new Date(dateString);
     const currentDate = new Date();
@@ -19,21 +20,22 @@
  * Takes the ID of a document from the composite collection NFLGames and returns the state of the game.
  * 
  * @param {*} gameID an id of a NFLGames doc.
+ * @return {string} 'complete', 'future', or 'live' depending on the game's state.
  */
  const checkGameState = async (gameID) => {
     if (typeof gameID !== 'string' || gameID.trim() === ''){
         throw new Error("Invalid or nonexistent game ID provided.");
     }
     try{
-    const matchedGameSnapshot = admin.firestore().collection('NFLGames').doc(gameID);
-    gameDoc = await matchedGameSnapshot.get();
-    const game = gameDoc.data();
-    console.log(game);
-    if (isFuture(game.start_timestamp)) return "future";
-    else if (checkIfGameIsLive(gameID)) return "live"; 
-    return "complete";
-    }catch(error){
-        throw new Error("Game document not found: " + error);
+        const matchedGameSnapshot = admin.firestore().collection('NFLGames').doc(gameID);
+        gameDoc = await matchedGameSnapshot.get();
+        const game = gameDoc.data();
+
+        if (isFuture(game.start_timestamp)) return "future";
+        else if (checkIfGameIsLive(gameID)) return "live"; 
+        else return "complete";
+    }catch(e){
+        throw new Error("Game document not found: " + e);
     }
 }
 
@@ -46,10 +48,7 @@
 const checkIfGameIsLive = async (gameID) => {
     const liveGames = await getLiveGames();
     if (liveGames.length > 0){
-        for (game in liveGames) {
-            console.log(game);
-            if (game.id == gameID) return true;
-        }
+        for (game in liveGames) if (game.id == gameID) return true;
     }
     else return false;
 }
@@ -57,7 +56,7 @@ const checkIfGameIsLive = async (gameID) => {
 /**
  * Gets the live NFL games from the NFL API.
  * 
- * @returns an array of the currently live NFL games.
+ * @returns {array} The currently live NFL games.
  */
 const getLiveGames = async () => {
     const options = {
@@ -69,8 +68,8 @@ const getLiveGames = async () => {
     }};
     const response = await axios.get(`https://americanfootballapi.p.rapidapi.com/api/american-football/matches/live`, 
     { headers: options.headers });
-    const matchesArr = response.data; 
-    return matchesArr;
+    const liveGames = response.data; 
+    return liveGames;
 }
 
 /**
@@ -78,6 +77,7 @@ const getLiveGames = async () => {
  * @param {*} ms The amount of milliseconds to delay.
  * @returns A promise that resolves after the delay has elapsed.
  */
+// TODO: Move to a more general helper function file.
 function delay(ms){
     return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -96,12 +96,10 @@ const getTimestampByGameID = async (gameId) => {
         for (const doc of snapshot.docs){
             const games = doc.data().games;
             const game = games.find(g => g.game_id === gameId);
-            if (game) {
-                return game.start_timestamp;
-            }
+            if (game) return game.start_timestamp;
         }
         return null;
-        } catch (e) {
+    } catch (e) {
         throw new Error ("Failed to load documents for game: " + gameId + "Error: " + e);
     }
 }
@@ -112,10 +110,12 @@ const getTimestampByGameID = async (gameId) => {
  * @param {*} dateString A dash separated date string.
  * @returns A slash separated date string.
  */
+// TODO: Move to a more general helper function file.
 const convertDateFormat = (dateString) => {
     const [year, month, day] = dateString.split("-");
     return `${day}/${month}/${year}`;
 }
+
 
 const getLineName = (line) => {
     if (!line) return ''; // Check if the string is empty or undefined
@@ -357,109 +357,126 @@ const checkPropHit = async (propProfileDocId, batch) => {
     }
 
 }
-
+/**
+ * Checks a user's prop against the completed props database.
+ * @param userID The ID of the user who's prop is to be checked.
+ * @param propID The ID of the prop to be checked.
+ * @param userPickId The id of the pick in the user's activePicks collection.
+ * @returns {boolean} True if won, false if lost.
+ */
+//TODO: Add additional markets (Currently only receptions)
 const checkUserProp = async (userID, propID, userPickId) => {
-    try{
-    const docRef = admin.firestore().collection('users')
-    .doc(userID).collection("activePicks").doc(userPickId);
-    const propRef = admin.firestore().collection("completePlayerPropProfiles");
-    const ref = await docRef.get();
-    const prop = ref.data();
-
-    const gameID = prop.nflApiGameId;
-    const playerID = prop.playerId; 
-    const pick = prop.pick;
-    console.log(`Passed: ${userID}, ${propID}, ${userPickId}`);
-    const completedPropRef = admin.firestore().collection('completePlayerPropProfiles').doc(propID);
-    const completeRef = await completedPropRef.get();
-    console.log(completeRef.data());
-    const completedProp = completeRef.data();
-    const outcome = completedProp.outcome;
-    const receptions = completedProp.receptions;
-
     let won;
-    if (outcome == pick){
-        won = true;
-    }else{
-        won = false;
-    }
-
-    const completedUserPropRef = admin.firestore().collection('users').doc(userID).collection("completePicks");
-    const docName = `${prop.propId}`;
-    await completedUserPropRef.doc(docName).set({
-        ...prop,
-        won: won,
-        outcome: outcome,
-        receptions: receptions
-    });
-    await docRef.delete();
-
-    updateRecord(userID, won);
-}
-catch(e){
-    console.log("helper: " + e);
-}
-}
-
-const updateRecord = async (userID, won) => {
     try{
-    const docRef = admin.firestore().collection('users')
-    .doc(userID);
-    const ref = await docRef.get();
-    const user = ref.data();
+        //Retrieve the active pick data
+        const docRef = admin.firestore().collection('users').doc(userID).collection("activePicks").doc(userPickId);
+        const ref = await docRef.get();
+        const prop = ref.data();
+        const pick = prop.pick;
+        //Retrieve the associated prop data
+        const completedPropRef = admin.firestore().collection('completePlayerPropProfiles').doc(propID);
+        const completeRef = await completedPropRef.get();
+        const completedProp = completeRef.data();
 
-    let wins = user.wins;
-    let losses = user.losses;
-    let streak = user.streak;
+        const outcome = completedProp.outcome;
+        const receptions = completedProp.receptions;
 
-    if (won){ 
-        wins++;
-        streak++;
-    }
-    else {
-        losses++;
-        streak = 0;
-    }
-    
-    await docRef.update({
-        wins: wins,
-        losses: losses,
-        streak: streak,
-    });
-    }
-    catch(e){
-        console.log("wins" + e);
+        (outcome == pick) ? won = true : won = false;
+
+        //Move the active to completed picks
+        const completedUserPropRef = admin.firestore().collection('users').doc(userID).collection("completePicks");
+        const docName = `${prop.propId}`;
+        await completedUserPropRef.doc(docName).set({
+            ...prop,
+            won: won,
+            outcome: outcome,
+            receptions: receptions
+        });
+        //Delete the active pick document
+        await docRef.delete();
+        return won;
+    }catch(e){
+        throw new Error("Failed to check user prop: " + propID + " Error: " + e);
     }
 }
 
-// LEADERBOARD FUNCTIONS
-const createScore = async (score, userID) => {
-    await admin.firestore().collection("wins").doc().create({
-        user: userID,
-        score: score
-    });
+/**
+ * Updates a given user's record and streak in the DB.
+ * @param uid The ID of the user who's stats are to be updated.
+ * @param addWins The number of wins to be added to the user's record.
+ * @param addLosses The number of losses to be added to the user's record.
+ */
+const bulkUpdateRecord = async (uid, addWins, addLosses) => {
+    try{
+        //Get user document data
+        const docRef = admin.firestore().collection('users').doc(uid);
+        const ref = await docRef.get();
+        const user = ref.data();
+
+        let currWins = user.wins;
+        let currLosses = user.losses;
+        let currStreak = user.streak;
+
+        //Update wins, losses, streak
+        currWins = currWins + addWins;
+        currLosses = currLosses + addLosses;
+        currStreak = currStreak + currLosses;
+
+        await docRef.update({
+            wins: currWins,
+            losses: currLosses,
+            streak: currStreak,
+        });
+    } catch (e){
+        throw new Error("Failed to update user: "+ uid +" record/stats in DB: " + e);
+    }
 }
 
-const determinePlayerPicks = async () => {
+
+/**
+ * Retrieves a random set of player props from the future profiles collection.
+ * 
+ * @param {*} uid The ID of the user for which the picks are generated.
+ * @returns {array} an array of randomly determined picks.
+ */
+// TODO: Consider extracting the limit constant as it may be changed for different users.
+const determinePlayerPicks = async (uid) => {
     let picks = [];
-    const limit = 3;
-    const profiles = await admin.firestore().collection("futurePlayerPropProfiles").get();
-    if (!profiles.empty){
-        //Convert documents to an array
-        let docs = profiles.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        picks = shuffleArray(docs).slice(0,limit);
+    const limit = 3; //The number of profiles to be returned
+    try{
+        const profiles = await admin.firestore().collection("futurePlayerPropProfiles").get();
+        const currDailyPicks = await admin.firestore().collection("users").doc(uid).collection("dailyPicks").get();
+
+        if (!profiles.empty){
+            //Convert documents to an array
+            let docs = profiles.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            let currPicksDocs = currDailyPicks.docs.map(doc => ({id: doc.id, ...doc.data()}));
+            //Filter out existing props in the docs
+            let filteredDocs = docs.filter(element => !currPicksDocs.includes(element));
+            //Reduce the limit to the arrays length
+            if (limit > filteredDocs.length) limit = filteredDocs.length;
+            //Randomly reorganize the array and take elements until the limit is reached
+            picks = shuffleArray(docs).slice(0,limit);
+        }
+    } catch (e){
+        throw new Error("Failed to retrieve picks from DB: " + e);
     }
-    //picks.forEach(pick => console.log("Pick: ", pick));
     return picks;
 }
-
+/**
+ * Randomly reorganizes the order of an array.
+ * 
+ * @param {array} array
+ * @returns {array} the same array with a random reorganization of it's elements.
+ */
+// TODO: Move to a general helper function file.
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [array[i], array[j]] = [array[j], array[i]]; // Swap elements
     }
     return array;
-  }
+}
 
 module.exports = {
     isFuture, 
@@ -480,5 +497,6 @@ module.exports = {
     checkPropHit,
     checkUserProp,
     getLineName,
-    determinePlayerPicks
+    determinePlayerPicks,
+    bulkUpdateRecord
 }

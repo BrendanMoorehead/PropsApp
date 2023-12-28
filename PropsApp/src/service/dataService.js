@@ -1,5 +1,5 @@
 import { FIRESTORE_DB } from "../config/firebaseConfig";
-import { doc, getDoc, query, where, collection, getDocs, orderBy } from 'firebase/firestore';
+import { doc, getDoc, query, where, collection, getDocs } from 'firebase/firestore';
 
 /**
  * Retrives the data for a single market.
@@ -91,46 +91,6 @@ export const getAllFuturePropProfiles = async () => {
         throw new Error("Failed to retrieve prop profiles");
     }
 }
-export const getDailyPicks = async (uid) => {
-    try{
-        const collRef = collection(FIRESTORE_DB, 'users', uid, 'dailyPicks');
-        const q = query(collRef);
-        const querySnapshot = await getDocs(q);
-
-        const documents = [];
-
-        querySnapshot.forEach(doc =>{
-            documents.push({id: doc.id, data: doc.data()});
-        });
-        return documents;
-    } catch (error){
-        throw new Error("Failed to get daily user picks: " + error);
-    }
-}
-
-export const countPicks = async (uid) => {
-    const countRef = collection(FIRESTORE_DB, 'users', uid, 'dailyPicks');
-    const doc = await getDocs(countRef);
-    return doc.size;
-}
-
-export const getUserStats = async (uid) => {
-    try {
-        const userRef = doc(FIRESTORE_DB, 'users', uid);
-        const userDoc = await getDoc(userRef);
-        if (userDoc.exists()){
-            const wins = userDoc.data().wins;
-            const losses = userDoc.data().losses;
-            const streak = userDoc.data().streak;
-            return [wins, losses, streak];
-        } else {
-            throw new Error("No user found with user ID: " + uid);
-        }
-
-    } catch (error) {
-        throw new Error ("Failed to get user stats: " + error);
-    }
-}
 
 export const getPlayerDetails = async (playerId) => {
     try {
@@ -153,39 +113,13 @@ export const getPlayerDetails = async (playerId) => {
         throw new Error ("Failed to get user stats: " + error);
     }
 }
-export const getPendingPicks = async (uid) => {
-    try {
-        const picksRef = collection(FIRESTORE_DB, 'users', uid, 'activePicks');
-        const q = query(picksRef, orderBy('pickMade', 'desc'));
-        const querySnapshot = await getDocs(q);
-        
-        const documents = [];
-        querySnapshot.forEach(doc =>{
-            documents.push({id: doc.id, data: doc.data()});
-        });
-        return documents;
 
-    } catch (error) {
-        throw new Error ("Failed to get user stats: " + error);
-    }
-}
-export const getResolvedPicks = async (uid) => {
-    try {
-        const picksRef = collection(FIRESTORE_DB, 'users', uid, 'completePicks');
-        const q = query(picksRef, orderBy('pickMade', 'desc'));
-        const querySnapshot = await getDocs(q);
-        
-        const documents = [];
-        querySnapshot.forEach(doc =>{
-            documents.push({id: doc.id, data: doc.data()});
-        });
-        return documents;
 
-    } catch (error) {
-        throw new Error ("Failed to get user stats: " + error);
-    }
-}
-
+/**
+ * Gets all usernames in the database.
+ * 
+ * @return {array} an array of every existing username in the DB.
+ */
 export const getAllUsernames = async () => {
     try{
         const collRef = collection(FIRESTORE_DB, 'usernames');
@@ -199,7 +133,7 @@ export const getAllUsernames = async () => {
         });
         return documents;
     }catch (e) {
-        throw new Error("Failed to get usernames.");
+        throw new Error("Failed to get usernames: " + e);
     }
 }
 

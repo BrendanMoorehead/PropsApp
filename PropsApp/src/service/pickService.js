@@ -13,8 +13,8 @@ export const setPick = async (pick, prop, uid) => {
     const userPicksRef = collection(FIRESTORE_DB, 'users', uid, "activePicks");
     try {
         const currentDate = new Date();
-        const newPickRef = doc(userPicksRef, `${prop.data.playerName}_${market.data.marketKey}_${prop.data.startTime}`);
-        await addDoc(newPickRef, {
+        const newPickRef = doc(userPicksRef, `${prop.data.id}`);
+        await setDoc(newPickRef, {
             pick: pick,
             active: true,
             propId: prop.id,
@@ -30,58 +30,18 @@ export const setPick = async (pick, prop, uid) => {
     }
 }
 
-export const deletePick = async(pickId, uid) => {
-    const userPickRef = doc(FIRESTORE_DB, 'users', uid, "dailyPicks", pickId);
+/**
+ * Deletes the document for a given pick from a user's dailyPicks collection.
+ * 
+ * @param {*} pickID The ID of the dailyPicks document.
+ * @param {*} userID The ID of the user that the pick is being deleted from.
+ */
+// TODO: Add error checking for invalid pickID or userID.
+export const deletePick = async(pickID, userID) => {
     try{ 
+        const userPickRef = doc(FIRESTORE_DB, 'users', userID, "dailyPicks", pickID);
         await deleteDoc(userPickRef);
     } catch (error){
         throw new Error("Failed to remove pick from user's daily picks collection: " + error);
-    }
-}
-
-/**
- * Creates a new document in resolvedPicks and verfies whether the pick hit or not.
- * Deletes the active document.
- * 
- * TODO: Add ability to verify pick hit.
- * 
- * @param {*} uid The id of the active user.
- * @param {*} propId The id of the prop document to be verified.
- */
-export const verifyPick = async (uid, propId) => {
-    const userPickRef = doc(FIRESTORE_DB, 'users', uid, "activePicks", propId);
-    if (!userPickRef) throw new Error("Unable to find active pick with id: " + propId);
-    const resolvedPicksRef = collection(FIRESTORE_DB, 'users', uid, "resolvedPicks");
-    try{
-        await addDoc(resolvedPicksRef,{
-            prop: userPickRef.data.prop,
-            pick: userPickRef.data.prop,
-            startTime: userPickRef.data.startTime,
-            active: false,
-            hit: false,
-        });
-        await deleteDoc(userPickRef);
-    } catch (error){
-        throw new Error("Failed to move pick document: " + error);
-    }
-}
-
-/**
- * Checks if the bet hit or not.
- * 
- * @param {*} line The player's pre-game line.
- * @param {*} stat The player's game stats.
- * @param {*} guess 'over' or 'under', the user's guess.
- * @returns True if the bet hit, false if the bet didn't.
- */
- const checkLineHit = (line, stat, guess) => {
-    if (guess != 'over' || guess != 'under') throw new Error("Invalid guess string: " + guess);
-    if (guess == "over"){
-        if (stat > line) return true;
-        return false;
-    }
-    else {
-        if (stat < line) return true;
-        return false;
     }
 }

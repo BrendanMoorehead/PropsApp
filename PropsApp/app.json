@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "PropsApp",
-    "slug": "PropsApp",
+    "name": "SwipeStakes",
+    "slug": "SwipeStakes",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -15,7 +15,8 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.brendanmoorehead.SwipeStakes"
     },
     "android": {
       "adaptiveIcon": {
@@ -25,6 +26,11 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "07d91434-3bcb-4a8b-a319-af930eb26b48"
+      }
     }
   }
 }
