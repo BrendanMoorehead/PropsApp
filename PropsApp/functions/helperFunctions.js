@@ -442,7 +442,7 @@ const bulkUpdateRecord = async (uid, addWins, addLosses) => {
 // TODO: Consider extracting the limit constant as it may be changed for different users.
 const determinePlayerPicks = async (uid) => {
     let picks = [];
-    const limit = 3; //The number of profiles to be returned
+    let limit = 3; //The number of profiles to be returned
     try{
         const profiles = await admin.firestore().collection("futurePlayerPropProfiles").get();
         const currDailyPicks = await admin.firestore().collection("users").doc(uid).collection("dailyPicks").get();
@@ -451,15 +451,20 @@ const determinePlayerPicks = async (uid) => {
             //Convert documents to an array
             let docs = profiles.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             let currPicksDocs = currDailyPicks.docs.map(doc => ({id: doc.id, ...doc.data()}));
+            //Get currPicksDocs ids
+            let currPicksIds = currPicksDocs.map(doc => doc.id);
             //Filter out existing props in the docs
-            let filteredDocs = docs.filter(element => !currPicksDocs.includes(element));
+            let filteredDocs = docs.filter(doc => !currPicksIds.includes(doc.id));
             //Reduce the limit to the arrays length
+            console.log("FilteredDoc Length: " + filteredDocs.length);
+            console.log("docsDoc Length: " + docs.length);
+            console.log("currPicksDoc Length: " + currPicksDocs.length);
             if (limit > filteredDocs.length) limit = filteredDocs.length;
             //Randomly reorganize the array and take elements until the limit is reached
-            picks = shuffleArray(docs).slice(0,limit);
+            picks = shuffleArray(filteredDocs).slice(0,limit);
         }
     } catch (e){
-        throw new Error("Failed to retrieve picks from DB: " + e);
+        throw new Error("Failed to retrieve : " + e);
     }
     return picks;
 }

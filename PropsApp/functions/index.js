@@ -532,7 +532,7 @@ exports.assignDailyPicks = functions.pubsub.schedule('5 5 * * *')
 
         for (const user of users.docs){
             console.log("uID: " + user.id);
-            const picks = await determinePlayerPicks();
+            const picks = await determinePlayerPicks(user.id);
             if (picks.length > 0){
                 console.log(picks.length);
                 for (const pick of picks){
