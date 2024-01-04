@@ -559,33 +559,37 @@ exports.assignDailyPicks = functions.pubsub.schedule('5 5 * * *')
 
 exports.disablePastDailyProps = functions.pubsub.schedule('every 20 minutes').onRun(async () => {
   try {
+    const usersSnapshot = await admin.firestore().collection('users').get();
     let batch = admin.firestore().batch();
-    const batchLimit = 500;
     let operationCount = 0;
+    const batchLimit = 500; // Firestore batch limit
 
-    const users = await admin.firestore().collection('users').get();
-    users.forEach(async (user) => {
-      const dailyPicks = await admin.firestore().collection('users').doc(user.id).collection('dailyPicks').get();
-      dailyPicks.forEach(async (pick) => {
-        const prop = pick.data();
-        const startTime = new Date(prop.startTime);
+    for (const userDoc of usersSnapshot.docs) {
+        const dailyPicksSnapshot = await admin.firestore().collection('users').doc(userDoc.id).collection('dailyPicks').get();
+        for (const pickDoc of dailyPicksSnapshot.docs) {
+            const prop = pickDoc.data();
+            const startTime = new Date(prop.startTime);
 
-        if (!isFuture(startTime)){
-            const pickDocRef = admin.firestore().collection('users').doc(user.id).collection('dailyPicks').doc(pick.id);
-            batch.delete(pickDocRef);
-            operationCount++;
-            if (operationCount >= batchLimit){
-                await batch.commit();
-                batch = admin().firestore().batch();
-                operationCount = 0;
+            if (!isFuture(startTime)) {
+                const pickDocRef = admin.firestore().collection('users').doc(userDoc.id).collection('dailyPicks').doc(pickDoc.id);
+                console.log("Deleting Future Pick: " + prop);
+                batch.delete(pickDocRef);
+                operationCount++;
+
+                if (operationCount >= batchLimit) {
+                    await batch.commit();
+                    batch = admin.firestore().batch();
+                    operationCount = 0;
+                }
             }
         }
-        
-      });
-    });
-    if (operationCount > 0){
-      await batch.commit();
     }
+
+    // Commit any remaining operations in the batch
+    if (operationCount > 0) {
+        await batch.commit();
+    }
+
     console.log("Checked props and updated as needed.");
     return null;
   } catch (error) {
