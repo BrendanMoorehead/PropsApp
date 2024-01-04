@@ -394,6 +394,7 @@ const checkUserProp = async (userID, propID, userPickId) => {
         });
         //Delete the active pick document
         await docRef.delete();
+        console.log("WON:" + won);
         return won;
     }catch(e){
         throw new Error("Failed to check user prop: " + propID + " Error: " + e);
@@ -411,24 +412,30 @@ const bulkUpdateRecord = async (uid, addWins, addLosses) => {
         //Get user document data
         const docRef = admin.firestore().collection('users').doc(uid);
         const ref = await docRef.get();
+
+        if (!ref.exists) {
+            throw new Error(`User document not found for uid: ${uid}`);
+        }
+
         const user = ref.data();
 
-        let currWins = user.wins;
-        let currLosses = user.losses;
-        let currStreak = user.streak;
+        let currWins = user.wins || 0;
+        let currLosses = user.losses || 0;
+        let currStreak = user.streak || 0;
 
         //Update wins, losses, streak
         currWins = currWins + addWins;
         currLosses = currLosses + addLosses;
-        currStreak = currStreak + currLosses;
+        (addLosses > 0) ? currStreak = 0 : currStreak = currStreak + addWins;
 
         await docRef.update({
             wins: currWins,
             losses: currLosses,
             streak: currStreak,
         });
-    } catch (e){
-        throw new Error("Failed to update user: "+ uid +" record/stats in DB: " + e);
+    } catch (e) {
+        console.error("Error in bulkUpdateRecord: ", e); // Detailed error logging
+        throw new Error(`Failed to update user: ${uid} record/stats in DB. Error: ${e.message}`);
     }
 }
 

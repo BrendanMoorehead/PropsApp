@@ -31,19 +31,20 @@ const Stats = () => {
     setRefreshing(false);
   }, []);
 
+  const getData = async () => {
+    const uid = await AsyncStorage.getItem("userToken");
+    const stats = await getUserStats(uid);
+    setWins(stats[0]);
+    setLosses(stats[1]);
+    setStreak(stats[2]);
+    const activePicks = await getUsersPendingPicks(uid);
+    setPendingPicks(activePicks);
+    const resolvedPicks = await getUsersResolvedPicks(uid);
+    setResolvedPicks(resolvedPicks);
+    setPicksLoading(false);
+  }
+
   useEffect(() => {
-    getData = async () => {
-      const uid = await AsyncStorage.getItem("userToken");
-      const stats = await getUserStats(uid);
-      setWins(stats[0]);
-      setLosses(stats[1]);
-      setStreak(stats[2]);
-      const pendingPicks = await getUsersPendingPicks(uid);
-      setPendingPicks(pendingPicks);
-      const resolvedPicks = await getUsersResolvedPicks(uid);
-      setResolvedPicks(resolvedPicks);
-      setPicksLoading(false);
-    }
     getData();
   },[]);
   useEffect(() => {

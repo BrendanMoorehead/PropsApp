@@ -415,8 +415,10 @@ exports.getAllPlayers = functions.pubsub.schedule('10 5 1 * *') //Executes once 
         }
 });
 
+//Have it batch execute
+//Find way to group execute
 exports.resolveUserProps = functions.pubsub.schedule('59 23 * * 0,1,4')
-  .onRun(async(context)=> {
+  .onRun(async()=> {
       const completePlayerProps = await admin.firestore().collection('completePlayerPropProfiles').get();
       const completePropIds = completePlayerProps.docs.map(doc => doc.id);
       const usersRef = admin.firestore().collection('users');
@@ -428,24 +430,24 @@ exports.resolveUserProps = functions.pubsub.schedule('59 23 * * 0,1,4')
     try{
         for (const user of usersSnapshot.docs){
             try{
-                const addWins = 0;
-                const addLosses = 0;
+                let addWins = 0;
+                let addLosses = 0;
                 const activePicksRef = usersRef.doc(user.id).collection('activePicks');
                 const activePicksSnapshot = await activePicksRef.get();
                 for (const pick of activePicksSnapshot.docs){
                     if (completePropIds.includes(pick.id)){
-                        //propData = completePlayerProps.doc(pick.propId).get();
                         console.log("MATCH:");
                         console.log(pick.data().propId);
-                        //const matchProp = await admin.firestore().collection('completemPlayerPropProfiles').doc(pick.id).get();
-                        checkUserProp(user.id, pick.id, pick.id) ? addWins++ : addLosses++;
+                        const propOutcome = await checkUserProp(user.id, pick.id, pick.id);
+                        propOutcome ? addWins++ : addLosses++;
+                        console.log("Add wins: " + addWins + ", Add losses: " + addLosses);
                     }
                 }
                 //Update user record
-                bulkUpdateRecord(user.uid, addWins, addLosses);
+                bulkUpdateRecord(user.id, addWins, addLosses);
             }catch (error){
                 //Move to next user if there are no active picks
-                console.log("catch: "+error);
+                console.log("catch: "+ error);
                 continue;
             }
         }
@@ -554,3 +556,40 @@ exports.assignDailyPicks = functions.pubsub.schedule('5 5 * * *')
         throw new Error("Failed to get users: " + error);
     }
   });
+
+exports.disablePastDailyProps = functions.pubsub.schedule('every 20 minutes').onRun(async () => {
+  try {
+    let batch = admin.firestore().batch();
+    const batchLimit = 500;
+    let operationCount = 0;
+
+    const users = await admin.firestore().collection('users').get();
+    users.forEach(async (user) => {
+      const dailyPicks = await admin.firestore().collection('users').doc(user.id).collection('dailyPicks').get();
+      dailyPicks.forEach(async (pick) => {
+        const prop = pick.data();
+        const startTime = new Date(prop.startTime);
+
+        if (!isFuture(startTime)){
+            const pickDocRef = admin.firestore().collection('users').doc(user.id).collection('dailyPicks').doc(pick.id);
+            batch.delete(pickDocRef);
+            operationCount++;
+            if (operationCount >= batchLimit){
+                await batch.commit();
+                batch = admin().firestore().batch();
+                operationCount = 0;
+            }
+        }
+        
+      });
+    });
+    if (operationCount > 0){
+      await batch.commit();
+    }
+    console.log("Checked props and updated as needed.");
+    return null;
+  } catch (error) {
+    console.error('Error disabling past props:', error);
+    return null;
+  }
+});
