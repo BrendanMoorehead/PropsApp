@@ -108,6 +108,7 @@ exports.getPlayerReceptions = functions.pubsub.schedule('0 5 * * *')
     }
 });
 
+
 /**
  * Parses the player props stored in the database into individual player profiles.
  * 
@@ -373,8 +374,7 @@ exports.getAllTeams = functions.pubsub.schedule('5 5 1 * *') //Runs once a month
 
 //NOTE: Tested with batching
 exports.getAllPlayers = functions.pubsub.schedule('10 5 1 * *') //Executes once a month.
-.onRun(async(context)=> {
-    const promises = [];
+.onRun(async () => {
     const teamIDs = [4412, 4413, 4414, 4415, 4416, 4417, 4418, 4419, 4420, 4421, 4422, 4423, 4424, 
         4425, 4426, 4427, 4428, 4429, 4430, 4431, 4432, 4386, 4324, 4287, 4390, 4388, 4389, 4387, 4392,
         4345, 4391, 4393];
@@ -572,7 +572,6 @@ exports.disablePastDailyProps = functions.pubsub.schedule('every 20 minutes').on
 
             if (!isFuture(startTime)) {
                 const pickDocRef = admin.firestore().collection('users').doc(userDoc.id).collection('dailyPicks').doc(pickDoc.id);
-                console.log("Deleting Future Pick: " + prop);
                 batch.delete(pickDocRef);
                 operationCount++;
 
@@ -589,7 +588,6 @@ exports.disablePastDailyProps = functions.pubsub.schedule('every 20 minutes').on
     if (operationCount > 0) {
         await batch.commit();
     }
-
     console.log("Checked props and updated as needed.");
     return null;
   } catch (error) {

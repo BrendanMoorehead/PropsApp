@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, RefreshControl, Dimensions } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, RefreshControl, Dimensions, TouchableOpacity } from 'react-native'
 import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import ProfilePicture from '../components/ProfilePicture'
@@ -21,6 +21,7 @@ const Stats = () => {
   const [resolvedPicks, setResolvedPicks] = useState([]);
   const [picksLoading, setPicksLoading] = useState(true);
   const [username, setUsername] = useState('');
+  const [resolvedExpanded, setResolvedExpanded] = useState(false);
 
   const onRefresh = React.useCallback(async () => {
     setRefreshing(true);
@@ -47,6 +48,7 @@ const Stats = () => {
   useEffect(() => {
     getData();
   },[]);
+
   useEffect(() => {
     // This effect runs whenever wins or losses change
     if (wins !== null && losses !== null) {
@@ -60,6 +62,7 @@ const Stats = () => {
       calculateWinRate();
     }
   }, [wins, losses]); 
+
   useEffect(() =>{
     const getUsername = async () => {
       try {
@@ -74,6 +77,24 @@ const Stats = () => {
     }
     getUsername();
   },[]);
+
+  const toggleResolvedPicks = () => {
+    setResolvedExpanded(!resolvedExpanded);
+  }
+  
+
+  const resolvedPicksDisplay = () => {
+    if (picksLoading) return <ActivityIndicator size='large'/>;
+    else if (resolvedPicks.lenth < 1) return <Text style={styles.altText}>No resolved picks.</Text>;
+    else {
+      const displayedPicks = resolvedExpanded ? resolvedPicks : resolvedPicks.slice(0,3);
+      return displayedPicks.map((pick) => (
+        <PickBar key={pick.id} data={pick.data} color={pick.data.outcome == pick.data.pick ? "#42f578" : "#f54242"}/>
+      ));
+    }
+  }
+
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView refreshControl={
@@ -111,21 +132,19 @@ const Stats = () => {
               <PickBar key={pick.id} data={pick.data} color="#cccccc"/>
             ))
           ) : (
-            <Text>No picks found.</Text>
+            <Text style={styles.altText}>You have no active picks.</Text>
           )}
         </View>
       </View>
       <View>
+      <View style={styles.pickHeaderWrapper}>
       <Text style={styles.statsHeader}>Resolved Picks</Text>
+        <TouchableOpacity onPress={toggleResolvedPicks}>
+            <Text style={styles.subText}> {resolvedExpanded ? 'See Less' : "See All " + resolvedPicks.length}</Text>
+        </TouchableOpacity>
+        </View>
         <View style={styles.pickBarContainer}>
-        {picksLoading ? <ActivityIndicator size='large'/> :
-          resolvedPicks.length > 0 ? (
-            resolvedPicks.map((pick) => (
-              <PickBar key={pick.id} data={pick.data} color={pick.data.outcome == pick.data.pick ? "#42f578" : "#f54242"}/>
-            ))
-          ) : (
-            <Text style={styles.altText}>No resolved picks.</Text>
-          )}
+            {resolvedPicksDisplay()}
         </View>
       </View>
       </ScrollView>
@@ -160,8 +179,12 @@ const styles = StyleSheet.create({
     color: '#e8e8e8',
     fontSize: 16
   },
-  statsWrapper: {
-    
+  pickHeaderWrapper: {
+    flex: 1,
+    flexDirection:'row',
+    justifyContent: 'space-between',
+    paddingRight:40,
+    alignItems: 'center'
   },
   statsHeader: {
     fontWeight: 'bold',
@@ -188,7 +211,7 @@ const styles = StyleSheet.create({
   },
   altText: {
     color: '#e8e8e8',
-    fontSize: 14,
+    fontSize: 18,
   },
   pickBarContainer : {
     margin: 30,
