@@ -81,7 +81,7 @@ const Stats = () => {
   const toggleResolvedPicks = () => {
     setResolvedExpanded(!resolvedExpanded);
   }
-  
+
 
   const resolvedPicksDisplay = () => {
     if (picksLoading) return <ActivityIndicator size='large'/>;
@@ -140,7 +140,7 @@ const Stats = () => {
       <View style={styles.pickHeaderWrapper}>
       <Text style={styles.statsHeader}>Resolved Picks</Text>
         <TouchableOpacity onPress={toggleResolvedPicks}>
-            <Text style={styles.subText}> {resolvedExpanded ? 'See Less' : "See All " + resolvedPicks.length}</Text>
+            <Text style={styles.subText}> {resolvedExpanded ? 'See Less' : "See All (" + resolvedPicks.length + ")"}</Text>
         </TouchableOpacity>
         </View>
         <View style={styles.pickBarContainer}>
